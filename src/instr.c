@@ -97,14 +97,14 @@ select_PC(uint64_t pred_PC, opcode_t X_opcode, bool X_cond_val, uint64_t seq_suc
         }
     }
 
-    else if (D_opcode == OP_RET)
+    else if (D_opcode != OP_RET)
     {
-        *current_PC = val_a;
+        *current_PC = pred_PC;
     }
 
     else
     {
-        *current_PC = pred_PC;
+        *current_PC = val_a;
     }
 
     
@@ -195,6 +195,14 @@ extract_immval(uint32_t insnbits, int64_t *imm) {
     else if (op == OP_MOVZ || op == OP_MOVK)
     {
         *imm = safe_GETBF(insnbits, 5, 16);
+    }
+    else if (op == OP_B_COND)
+    {
+        *imm = safe_GETBF(insnbits, 5, 19);
+    }
+    else if (op == OP_B || op == OP_BL)
+    {
+        *imm = safe_GETBF(insnbits, 0, 26);
     }
 
     return;
@@ -307,7 +315,6 @@ comb_logic_t fetch_instr(pipe_reg_t *const insn) {
     imem(current_PC, &insn->out->insnbits, &imem_err);
     insn->out->op = itable[safe_GETBF(insn->out->insnbits, 21, 11)];
     predict_PC(current_PC, insn->out->insnbits, itable[safe_GETBF(insn->in->insnbits, 21, 11)], &pred_pc, &insn->out->seq_succ_PC);
-    insn->out->op = insn->in->op;
     return;
 }
 
@@ -325,15 +332,12 @@ comb_logic_t fetch_instr(pipe_reg_t *const insn) {
 comb_logic_t decode_instr(pipe_reg_t *const insn) {
     insn->out->seq_succ_PC = insn->in->seq_succ_PC;
     insn->out->op = insn->in->op;
-    decide_alu_op(insn->in->op, &insn->out->ALU_op);
+    
     uint8_t src1 = 31;
     uint8_t src2 = 0;
     d_ctl_sigs_t D;
 
-    if (insn->in->op == OP_B_COND)
-    {
-        insn->out->cond = GETBF(insn->in->insnbits, 0, 4);
-    }
+    
 
     generate_DXMW_control(insn->in->op, &D, &(insn->out->X_sigs), &(insn->out->M_sigs), &(insn->out->W_sigs));
 
@@ -342,12 +346,11 @@ comb_logic_t decode_instr(pipe_reg_t *const insn) {
         src1 = safe_GETBF(insn->in->insnbits, 5, 5);
     }
 
-    if (insn->in->op == OP_ANDS_RR || insn->in->op == OP_ORR_RR || insn->in->op == OP_EOR_RR || insn->in->op == OP_ADDS_RR || 
-        insn->in->op == OP_SUBS_RR || insn->in->op == OP_MVN)
+    if (!D.src2_sel)
     {
         src2 = safe_GETBF(insn->in->insnbits, 16, 5);
     }
-    else if (D.src2_sel)
+    else
     {
         src2 = safe_GETBF(insn->in->insnbits, 0, 5);
     }
@@ -357,12 +360,20 @@ comb_logic_t decode_instr(pipe_reg_t *const insn) {
 
     regfile(src1, src2, dst, W_wval, D.src1_31isSP, D.src2_31isSP, guest.proc->w_insn->in->W_sigs.dst_31isSP, guest.proc->w_insn->in->W_sigs.w_enable,
     &insn->out->val_a, &insn->out->val_b);
-
-    insn->out->dst = safe_GETBF(insn->in->insnbits, 0, 5);
+    if (insn->in->op == OP_B_COND)
+    {
+        insn->out->cond = GETBF(insn->in->insnbits, 0, 4);
+    }
     extract_immval(insn->in->insnbits, &(insn->out->val_imm));
+    decide_alu_op(insn->in->op, &insn->out->ALU_op);
+    insn->out->dst = safe_GETBF(insn->in->insnbits, 0, 5);
+    
 
     insn->out->val_hw = insn->in->op == OP_MOVZ || insn->in->op == OP_MOVK ? safe_GETBF(insn->in->insnbits, 21, 2) << 4 : 0; 
-    insn->out->val_a = insn->in->op == OP_MOVZ ? 0 : insn->out->val_a;
+    if (insn->out->op == OP_MOVZ)
+    {
+        insn->out->op = 0;
+    }
     // insn->out->val_b = insn->in->X_sigs.valb_sel ? insn->in->val_b : insn->in->val_imm;
 
     return;
@@ -378,13 +389,16 @@ comb_logic_t decode_instr(pipe_reg_t *const insn) {
  */
 
 comb_logic_t execute_instr(pipe_reg_t *const insn) {
-    uint64_t alu_valb = insn->in->X_sigs.valb_sel ? insn->in->val_b : insn->in->val_imm;
+    
     copy_m_ctl_sigs(insn);
     copy_w_ctl_sigs(insn);
-    alu(insn->in->val_a, alu_valb, insn->in->val_hw, insn->in->ALU_op, insn->in->X_sigs.set_CC, insn->in->cond, &insn->out->val_ex, &X_condval);
+    uint64_t alu_b = insn->in->X_sigs.valb_sel ? insn->in->val_b : insn->in->val_imm;
+    alu(insn->in->val_a, alu_b, insn->in->val_hw, insn->in->ALU_op, insn->in->X_sigs.set_CC, insn->in->cond, &insn->out->val_ex, &X_condval);
     insn->out->dst = insn->in->dst;
     insn->out->val_b = insn->in->val_b;
     insn->out->op = insn->in->op;
+    insn->out->M_sigs = insn->in->M_sigs;
+    insn->out->W_sigs = insn->in->W_sigs;
     return; 
 }
 
