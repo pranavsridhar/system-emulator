@@ -1,0 +1,5 @@
+./se: option requires an argument -- 'v'
+[36m	[INFO] Ignoring unknown option v[0m
+[36m	[INFO] Loading ELF executable[0m
+[36m	[INFO] Running ELF executable[0m
+[1m[31m	[FATAL] Null pointer read attempt[0m

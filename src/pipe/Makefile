@@ -13,7 +13,6 @@ MD = gccmakedep
 SRCS := \
 forward.c \
 hazard_control.c \
-select_pc.c
 
 # SRCS := $(HDRS:%.h=%.c)
 OBJS := $(SRCS:%.c=%.o)

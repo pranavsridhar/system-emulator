@@ -4,15 +4,22 @@
 start:
 
     movz x0, #1
+    nop
+    nop
+    nop
     movz x1, #2
+    nop
     nop
     nop
     subs x3, x0, x1
     nop
     nop
+    nop
+    nop
     b.eq .helper
 
 .goback:
+
     nop
     nop
     nop
@@ -26,20 +33,26 @@ start:
     nop
     nop
     nop
-	stur	x4, [x5]
+	stur	x0, [x5]
     nop
     nop
     nop
-    // correct: 1
-    // incorrect: 65535
+    // correct: 65535
+    // incorrect: 1
 	ret
-
+	
 .helper:
     nop
     nop
     nop
     movz x0, #65535
+    nop
+    nop
+    nop
     movz x1, #42069
+    nop
+    nop
+    nop
     b .goback
 
 	.size	start, .-start

@@ -9,49 +9,61 @@ Disassembly of section .note.gnu.build-id:
   4000ec:	00000014 	.inst	0x00000014 ; undefined
   4000f0:	00000003 	.inst	0x00000003 ; undefined
   4000f4:	00554e47 	.inst	0x00554e47 ; undefined
-  4000f8:	72459fc3 	.inst	0x72459fc3 ; undefined
-  4000fc:	a1c9c9b0 	.inst	0xa1c9c9b0 ; undefined
-  400100:	c0576fc1 	.inst	0xc0576fc1 ; undefined
-  400104:	a041fc3c 	.inst	0xa041fc3c ; undefined
-  400108:	d5fc6c44 	.inst	0xd5fc6c44 ; undefined
+  4000f8:	79c09e7f 	ldrsh	wzr, [x19, #78]
+  4000fc:	aa1c9d71 	orr	x17, x11, x28, lsl #39
+  400100:	3a43eb3b 	.inst	0x3a43eb3b ; undefined
+  400104:	e45e92a8 	st1b	{z8.s}, p4, [x21, z30.s, uxtw]
+  400108:	51c2ac75 	.inst	0x51c2ac75 ; undefined
 
 Disassembly of section .text:
 
 000000000040010c <start>:
   40010c:	d2800020 	mov	x0, #0x1                   	// #1
-  400110:	d2800041 	mov	x1, #0x2                   	// #2
+  400110:	d503201f 	nop
   400114:	d503201f 	nop
   400118:	d503201f 	nop
-  40011c:	eb010003 	subs	x3, x0, x1
+  40011c:	d2800041 	mov	x1, #0x2                   	// #2
   400120:	d503201f 	nop
   400124:	d503201f 	nop
-  400128:	54000220 	b.eq	40016c <.helper>  // b.none
-
-000000000040012c <.goback>:
-  40012c:	d503201f 	nop
+  400128:	d503201f 	nop
+  40012c:	eb010003 	subs	x3, x0, x1
   400130:	d503201f 	nop
   400134:	d503201f 	nop
-  400138:	ca0500a5 	eor	x5, x5, x5
+  400138:	d503201f 	nop
   40013c:	d503201f 	nop
-  400140:	d503201f 	nop
-  400144:	d503201f 	nop
-  400148:	aa2503e5 	mvn	x5, x5
-  40014c:	d503201f 	nop
-  400150:	d503201f 	nop
-  400154:	d503201f 	nop
-  400158:	f80000a4 	stur	x4, [x5]
-  40015c:	d503201f 	nop
-  400160:	d503201f 	nop
-  400164:	d503201f 	nop
-  400168:	d65f03c0 	ret
+  400140:	54000220 	b.eq	400184 <.helper>  // b.none
 
-000000000040016c <.helper>:
+0000000000400144 <.goback>:
+  400144:	d503201f 	nop
+  400148:	d503201f 	nop
+  40014c:	d503201f 	nop
+  400150:	ca0500a5 	eor	x5, x5, x5
+  400154:	d503201f 	nop
+  400158:	d503201f 	nop
+  40015c:	d503201f 	nop
+  400160:	aa2503e5 	mvn	x5, x5
+  400164:	d503201f 	nop
+  400168:	d503201f 	nop
   40016c:	d503201f 	nop
-  400170:	d503201f 	nop
+  400170:	f80000a0 	stur	x0, [x5]
   400174:	d503201f 	nop
-  400178:	d29fffe0 	mov	x0, #0xffff                	// #65535
-  40017c:	d2948aa1 	mov	x1, #0xa455                	// #42069
-  400180:	17ffffeb 	b	40012c <.goback>
+  400178:	d503201f 	nop
+  40017c:	d503201f 	nop
+  400180:	d65f03c0 	ret
+
+0000000000400184 <.helper>:
+  400184:	d503201f 	nop
+  400188:	d503201f 	nop
+  40018c:	d503201f 	nop
+  400190:	d29fffe0 	mov	x0, #0xffff                	// #65535
+  400194:	d503201f 	nop
+  400198:	d503201f 	nop
+  40019c:	d503201f 	nop
+  4001a0:	d2948aa1 	mov	x1, #0xa455                	// #42069
+  4001a4:	d503201f 	nop
+  4001a8:	d503201f 	nop
+  4001ac:	d503201f 	nop
+  4001b0:	17ffffe5 	b	400144 <.goback>
 
 Disassembly of section .comment:
 

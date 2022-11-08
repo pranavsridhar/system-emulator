@@ -4,8 +4,18 @@
 start:
 
     movz x0, #1
+    nop
+    nop
+    nop
     movz x1, #1
+    nop
+    nop
+    nop
     subs x3, x0, x1
+    nop
+    nop
+    nop
+    nop
     b.eq .helper
 
 .goback:
@@ -23,7 +33,7 @@ start:
     nop
     nop
     nop
-	stur	x4, [x5]
+	stur	x0, [x5]
     nop
     nop
     nop
@@ -36,11 +46,14 @@ start:
     nop
     nop
     movz x0, #65535
+    nop
+    nop
+    nop
     movz x1, #42069
+    nop
+    nop
+    nop
     b .goback
-    nop
-    nop
-    nop
 
     .size	start, .-start
 	.ident	"GCC: (Ubuntu/Linaro 7.5.0-3ubuntu1~18.04) 7.5.0"
