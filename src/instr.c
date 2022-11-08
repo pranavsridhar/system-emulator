@@ -167,10 +167,9 @@ generate_DXMW_control(opcode_t op,
     W_sigs->wval_sel = op == OP_LDUR || op == OP_LDURB;
     W_sigs->dst_31isSP = 0;
     W_sigs->dst_sel = op == OP_BL;
-    W_sigs->w_enable = op == OP_LDUR || op == OP_LDURB || op == OP_STUR || op == OP_STURB
-        || op == OP_MOVZ || op == OP_MOVK || op == OP_MVN || op == OP_LSL || op == OP_LSR 
-        || op == OP_ASR || op == OP_UBFM || op == OP_ADDS_RR || op == OP_SUBS_RR || 
-        op == OP_ANDS_RR || op == OP_ORR_RR || op == OP_EOR_RR;
+    W_sigs->w_enable = op == OP_MOVZ || op == OP_ANDS_RR || OP_LDUR || op == OP_ADD_RI || op == OP_LDURB || op == OP_ORR_RR  
+        || op == OP_EOR_RR || op == OP_MOVK || op == OP_MVN || op == OP_ASR || op == OP_UBFM || op == OP_LSL || op == OP_LSR 
+        || op == OP_ADDS_RR || op == OP_SUBS_RR; 
         
     return;
 }
@@ -216,7 +215,22 @@ extract_immval(uint32_t insnbits, int64_t *imm) {
  */
 static comb_logic_t
 decide_alu_op(opcode_t op, alu_op_t *ALU_op) {
-    if (op == OP_ADDS_RR || op == OP_ADD_RI)
+
+    
+
+    if (op == OP_LDURB || op == OP_LDUR)
+    {
+        *ALU_op = PLUS_OP;
+    }
+    else if (op == OP_STURB || op == OP_STUR)
+    {
+        *ALU_op = PLUS_OP;
+    }
+    else if (op == OP_MOVK || op == OP_MOVZ )
+    {
+        *ALU_op = MOV_OP;
+    }
+    else if (op == OP_ADDS_RR || op == OP_ADD_RI)
     {
         *ALU_op = PLUS_OP;
     }
@@ -224,33 +238,21 @@ decide_alu_op(opcode_t op, alu_op_t *ALU_op) {
     {
         *ALU_op = MINUS_OP;
     }
-    else if (op == OP_ORR_RR)
+    else if (op == OP_MVN)
     {
-        *ALU_op = OR_OP;
+        *ALU_op = NEG_OP;
     }
     else if (op == OP_EOR_RR)
     {
         *ALU_op = EOR_OP;
     }
-    else if (op == OP_ANDS_RR)
+    else if (op == OP_ORR_RR)
+    {
+        *ALU_op = OR_OP;
+    }
+    else if (op == OP_ANDS_RR )
     {
         *ALU_op = AND_OP;
-    }
-    else if (op == OP_ORR_RR)
-    {
-        *ALU_op = OR_OP;
-    }
-    else if (op == OP_MOVZ || op == OP_MOVK)
-    {
-        *ALU_op = MOV_OP;
-    }
-    else if (op == OP_ORR_RR)
-    {
-        *ALU_op = OR_OP;
-    }
-    else if (op == OP_LDUR || op == OP_LDURB)
-    {
-        *ALU_op = PLUS_OP;
     }
     else if (op == OP_LSL)
     {
@@ -264,20 +266,15 @@ decide_alu_op(opcode_t op, alu_op_t *ALU_op) {
     {
         *ALU_op = ASR_OP;
     }
-    else if (op == OP_ORR_RR)
-    {
-        *ALU_op = OR_OP;
-    }
-    else if (op == OP_STUR || op == OP_STURB)
-    {
-        *ALU_op = PLUS_OP;
-    }
     else
     {
         *ALU_op = PASS_A_OP;
     }
+
     return;
 }
+
+
 
 /*
  * Utility functions for copying over control signals across a stage.
@@ -318,6 +315,18 @@ comb_logic_t fetch_instr(pipe_reg_t *const insn) {
     predict_PC(current_PC, insn->out->insnbits, out_op, &pred_pc, &insn->out->seq_succ_PC);
     return;
 }
+
+
+/*
+ * Decode stage logic.
+ * STUDENT TO-DO:
+ * Implement the decode stage.
+ * 
+ * You will need the global variable W_wval
+ * and helper functions
+ * generate_DXMW_control, regfile, extract_immval,
+ * and decide_alu_op.
+ */
 
 /*
  * Decode stage logic.
@@ -381,7 +390,6 @@ comb_logic_t decode_instr(pipe_reg_t *const insn) {
     {
         insn->out->op = 0;
     }
-    // insn->out->val_b = insn->in->X_sigs.valb_sel ? insn->in->val_b : insn->in->val_imm;
 
     return;
 }
@@ -425,7 +433,6 @@ comb_logic_t memory_instr(pipe_reg_t *const insn) {
     dmem(insn->in->val_ex, insn->in->val_b, insn->in->M_sigs.dmem_read, insn->in->M_sigs.dmem_write, &insn->out->val_mem, &dmem_err);
     insn->out->dst = insn->in->dst;
     insn->out->op = insn->in->op;
-    
     insn->out->val_ex = insn->in->val_ex;
     return;
 }

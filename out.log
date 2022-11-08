@@ -1,7 +1,7 @@
 Welcome to the C S 429 Architecture Emulator
 
 Author: [1m[31mReference Implementation[0m
-Run begun at Mon Nov  7 23:54:33 2022
+Run begun at Tue Nov  8 17:37:21 2022
 
 
 
@@ -12,7 +12,7 @@ D: NOP   [val_a, val_b, imm] = [0x0, 0x0, 0x0], alu_op: PASS_A_OP, cond: EQ, dst
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
 	 M_sigs: [dmem_read, dmem_write] = [false, false]
-	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, false]
+	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, true]
 X: NOP   [val_ex, a, b, imm, hw] = [0x0, 0x0, 0x0, 0x0, 0x0], alu_op: PLUS_OP
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
@@ -72,7 +72,7 @@ D: NOP   [val_a, val_b, imm] = [0x0, 0x0, 0x1234], alu_op: PASS_A_OP, cond: EQ, 
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
 	 M_sigs: [dmem_read, dmem_write] = [false, false]
-	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, false]
+	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, true]
 X: EOR   [val_ex, a, b, imm, hw] = [0x0, 0x0, 0x0, 0x0, 0x0], alu_op: PLUS_OP
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
@@ -81,7 +81,7 @@ M: ERR   [val_ex, val_b, val_mem] = [0x1234, 0x0, 0x0]
 	 M_sigs: [dmem_read, dmem_write] = [false, false]
 W: NOP   [dst, val_ex, val_mem] = [X0, 0x0, 0x0]
  	 [bubble, stall] = [false, false]
-	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, false]
+	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, true]
 
 
 
@@ -92,7 +92,7 @@ D: NOP   [val_a, val_b, imm] = [0x0, 0x0, 0x1234], alu_op: PASS_A_OP, cond: EQ, 
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
 	 M_sigs: [dmem_read, dmem_write] = [false, false]
-	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, false]
+	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, true]
 X: NOP   [val_ex, a, b, imm, hw] = [0x0, 0x0, 0x0, 0x0, 0x0], alu_op: PLUS_OP
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
@@ -112,7 +112,7 @@ D: NOP   [val_a, val_b, imm] = [0x1234, 0x0, 0x1234], alu_op: PASS_A_OP, cond: E
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
 	 M_sigs: [dmem_read, dmem_write] = [false, false]
-	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, false]
+	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, true]
 X: NOP   [val_ex, a, b, imm, hw] = [0x0, 0x0, 0x0, 0x0, 0x0], alu_op: PLUS_OP
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
@@ -128,7 +128,7 @@ W: EOR   [dst, val_ex, val_mem] = [X0, 0x0, 0x0]
 Pipeline state at end of cycle 6:
 F: NOP   [PC, insn_bits] = [00400124,  D503201F], seq_succ_PC: 0x400128, pred_PC: 0x400128
  	 [bubble, stall] = [false, false]
-D: MVN   [val_a, val_b, imm] = [0x0, 0x0, 0x1234], alu_op: PASS_A_OP, cond: EQ, dst: X5
+D: MVN   [val_a, val_b, imm] = [0x0, 0x0, 0x1234], alu_op: NEG_OP, cond: EQ, dst: X5
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [true , false]
 	 M_sigs: [dmem_read, dmem_write] = [false, false]
@@ -141,7 +141,7 @@ M: NOP   [val_ex, val_b, val_mem] = [0x0, 0x0, 0x0]
 	 M_sigs: [dmem_read, dmem_write] = [false, false]
 W: NOP   [dst, val_ex, val_mem] = [X0, 0x0, 0x0]
  	 [bubble, stall] = [false, false]
-	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, false]
+	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, true]
 
 
 
@@ -152,8 +152,8 @@ D: NOP   [val_a, val_b, imm] = [0x1234, 0x0, 0x1234], alu_op: PASS_A_OP, cond: E
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
 	 M_sigs: [dmem_read, dmem_write] = [false, false]
-	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, false]
-X: MVN   [val_ex, a, b, imm, hw] = [0x0, 0x0, 0x0, 0x0, 0x0], alu_op: PLUS_OP
+	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, true]
+X: MVN   [val_ex, a, b, imm, hw] = [0xFFFFFFFFFFFFFFFF, 0x0, 0x0, 0x0, 0x0], alu_op: PLUS_OP
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
 M: NOP   [val_ex, val_b, val_mem] = [0x1234, 0x0, 0x0]
@@ -161,7 +161,7 @@ M: NOP   [val_ex, val_b, val_mem] = [0x1234, 0x0, 0x0]
 	 M_sigs: [dmem_read, dmem_write] = [false, false]
 W: NOP   [dst, val_ex, val_mem] = [X0, 0x0, 0x0]
  	 [bubble, stall] = [false, false]
-	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, false]
+	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, true]
 
 
 
@@ -172,16 +172,16 @@ D: NOP   [val_a, val_b, imm] = [0x1234, 0x0, 0x1234], alu_op: PASS_A_OP, cond: E
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
 	 M_sigs: [dmem_read, dmem_write] = [false, false]
-	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, false]
+	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, true]
 X: NOP   [val_ex, a, b, imm, hw] = [0x1234, 0x0, 0x0, 0x0, 0x0], alu_op: PLUS_OP
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
-M: MVN   [val_ex, val_b, val_mem] = [0x0, 0x0, 0x0]
+M: MVN   [val_ex, val_b, val_mem] = [0xFFFFFFFFFFFFFFFF, 0x0, 0x0]
  	 [bubble, stall] = [false, false]
 	 M_sigs: [dmem_read, dmem_write] = [false, false]
 W: NOP   [dst, val_ex, val_mem] = [X0, 0x0, 0x0]
  	 [bubble, stall] = [false, false]
-	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, false]
+	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, true]
 
 
 
@@ -192,7 +192,7 @@ D: NOP   [val_a, val_b, imm] = [0x1234, 0x0, 0x1234], alu_op: PASS_A_OP, cond: E
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
 	 M_sigs: [dmem_read, dmem_write] = [false, false]
-	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, false]
+	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, true]
 X: NOP   [val_ex, a, b, imm, hw] = [0x1234, 0x0, 0x0, 0x0, 0x0], alu_op: PLUS_OP
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
@@ -208,7 +208,7 @@ W: MVN   [dst, val_ex, val_mem] = [X0, 0x0, 0x0]
 Pipeline state at end of cycle 10:
 F: NOP   [PC, insn_bits] = [00400134,  D503201F], seq_succ_PC: 0x400138, pred_PC: 0x400138
  	 [bubble, stall] = [false, false]
-D: STUR  [val_a, val_b, imm] = [0x0, 0x1234, 0x0], alu_op: PLUS_OP, cond: EQ, dst: X0
+D: STUR  [val_a, val_b, imm] = [0xFFFFFFFFFFFFFFFF, 0x1234, 0x0], alu_op: PLUS_OP, cond: EQ, dst: X0
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [true , false]
 	 M_sigs: [dmem_read, dmem_write] = [false, true]
@@ -221,7 +221,7 @@ M: NOP   [val_ex, val_b, val_mem] = [0x1234, 0x0, 0x0]
 	 M_sigs: [dmem_read, dmem_write] = [false, false]
 W: NOP   [dst, val_ex, val_mem] = [X0, 0x0, 0x0]
  	 [bubble, stall] = [false, false]
-	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, false]
+	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, true]
 
 
 
@@ -232,8 +232,8 @@ D: NOP   [val_a, val_b, imm] = [0x1234, 0x0, 0x0], alu_op: PASS_A_OP, cond: EQ, 
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
 	 M_sigs: [dmem_read, dmem_write] = [false, false]
-	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, false]
-X: STUR  [val_ex, a, b, imm, hw] = [0x0, 0x0, 0x1234, 0x0, 0x0], alu_op: PLUS_OP
+	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, true]
+X: STUR  [val_ex, a, b, imm, hw] = [0xFFFFFFFFFFFFFFFF, 0x0, 0x1234, 0x0, 0x0], alu_op: PLUS_OP
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
 M: NOP   [val_ex, val_b, val_mem] = [0x1234, 0x0, 0x0]
@@ -241,9 +241,10 @@ M: NOP   [val_ex, val_b, val_mem] = [0x1234, 0x0, 0x0]
 	 M_sigs: [dmem_read, dmem_write] = [false, false]
 W: NOP   [dst, val_ex, val_mem] = [X0, 0x0, 0x0]
  	 [bubble, stall] = [false, false]
-	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, false]
+	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, true]
 
 
+4660 0x00000000001234
 
 Pipeline state at end of cycle 12:
 F: NOP   [PC, insn_bits] = [0040013C,  D503201F], seq_succ_PC: 0x400140, pred_PC: 0x400140
@@ -252,16 +253,16 @@ D: NOP   [val_a, val_b, imm] = [0x1234, 0x0, 0x0], alu_op: PASS_A_OP, cond: EQ, 
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
 	 M_sigs: [dmem_read, dmem_write] = [false, false]
-	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, false]
+	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, true]
 X: NOP   [val_ex, a, b, imm, hw] = [0x1234, 0x0, 0x0, 0x0, 0x0], alu_op: PLUS_OP
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
-M: STUR  [val_ex, val_b, val_mem] = [0x0, 0x0, 0x0]
+M: STUR  [val_ex, val_b, val_mem] = [0xFFFFFFFFFFFFFFFF, 0x0, 0x0]
  	 [bubble, stall] = [false, false]
 	 M_sigs: [dmem_read, dmem_write] = [false, true]
 W: NOP   [dst, val_ex, val_mem] = [X0, 0x0, 0x0]
  	 [bubble, stall] = [false, false]
-	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, false]
+	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, true]
 
 
 
@@ -272,7 +273,7 @@ D: NOP   [val_a, val_b, imm] = [0x1234, 0x0, 0x0], alu_op: PASS_A_OP, cond: EQ, 
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
 	 M_sigs: [dmem_read, dmem_write] = [false, false]
-	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, false]
+	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, true]
 X: NOP   [val_ex, a, b, imm, hw] = [0x1234, 0x0, 0x0, 0x0, 0x0], alu_op: PLUS_OP
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
@@ -292,7 +293,7 @@ D: RET   [val_a, val_b, imm] = [0xFFFFFFFFFFFFFFFB, 0x0, 0x0], alu_op: PASS_A_OP
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
 	 M_sigs: [dmem_read, dmem_write] = [false, false]
-	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, true , false, false]
+	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, true]
 X: NOP   [val_ex, a, b, imm, hw] = [0x1234, 0x0, 0x0, 0x0, 0x0], alu_op: PLUS_OP
  	 [bubble, stall] = [false, false]
 	 X_sigs: [valb_sel, set_CC] = [false, false]
@@ -301,10 +302,10 @@ M: NOP   [val_ex, val_b, val_mem] = [0x1234, 0x0, 0x0]
 	 M_sigs: [dmem_read, dmem_write] = [false, false]
 W: NOP   [dst, val_ex, val_mem] = [X0, 0x0, 0x0]
  	 [bubble, stall] = [false, false]
-	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, false]
+	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, true]
 
 
-Run ended at Mon Nov  7 23:54:33 2022
+Run ended at Tue Nov  8 17:37:21 2022
 
 [1mGoodbye!
 
