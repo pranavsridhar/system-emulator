@@ -154,7 +154,7 @@ predict_PC(uint64_t current_PC, uint32_t insnbits, opcode_t op, uint64_t *predic
 static comb_logic_t 
 generate_DXMW_control(opcode_t op,
                       d_ctl_sigs_t *D_sigs, x_ctl_sigs_t *X_sigs, m_ctl_sigs_t *M_sigs, w_ctl_sigs_t *W_sigs) {
-    D_sigs->src1_31isSP = op == OP_LDUR || op == OP_LDURB || op == OP_STUR || op == OP_STURB;
+    D_sigs->src1_31isSP = op == OP_STUR || op == OP_LDURB || op == OP_LDUR || op == OP_STURB;
     D_sigs->src2_31isSP = 0;
     D_sigs->src2_sel = op == OP_STUR || op == OP_STURB;
 
@@ -166,7 +166,7 @@ generate_DXMW_control(opcode_t op,
 
     W_sigs->wval_sel = op == OP_LDUR || op == OP_LDURB;
     W_sigs->dst_31isSP = 0;
-    W_sigs->dst_sel = op == OP_RET;
+    W_sigs->dst_sel = op == OP_BL;
     W_sigs->w_enable = op == OP_LDUR || op == OP_LDURB || op == OP_STUR || op == OP_STURB
         || op == OP_MOVZ || op == OP_MOVK || op == OP_MVN || op == OP_LSL || op == OP_LSR 
         || op == OP_ASR || op == OP_UBFM || op == OP_ADDS_RR || op == OP_SUBS_RR || 
@@ -313,8 +313,9 @@ comb_logic_t fetch_instr(pipe_reg_t *const insn) {
     bool imem_err; // Ignored, though you will need this as a filler parameter to imem.
     select_PC(pred_pc, guest.proc->x_insn->in->op, X_condval, insn->in->seq_succ_PC, guest.proc->d_insn->in->op, guest.proc->d_insn->out->val_a, &current_PC);
     imem(current_PC, &insn->out->insnbits, &imem_err);
-    insn->out->op = itable[safe_GETBF(insn->out->insnbits, 21, 11)];
-    predict_PC(current_PC, insn->out->insnbits, itable[safe_GETBF(insn->in->insnbits, 21, 11)], &pred_pc, &insn->out->seq_succ_PC);
+    uint64_t out_op = itable[safe_GETBF(insn->out->insnbits, 21, 11)];
+    insn->out->op = out_op;
+    predict_PC(current_PC, insn->out->insnbits, out_op, &pred_pc, &insn->out->seq_succ_PC);
     return;
 }
 
@@ -364,10 +365,16 @@ comb_logic_t decode_instr(pipe_reg_t *const insn) {
     {
         insn->out->cond = GETBF(insn->in->insnbits, 0, 4);
     }
-    extract_immval(insn->in->insnbits, &(insn->out->val_imm));
     decide_alu_op(insn->in->op, &insn->out->ALU_op);
+
+    extract_immval(insn->in->insnbits, &(insn->out->val_imm));
+    
     insn->out->dst = safe_GETBF(insn->in->insnbits, 0, 5);
     
+    if (insn->in->op == OP_B_COND)
+    {
+        insn->out->cond = GETBF(insn->in->insnbits, 0, 4);
+    }
 
     insn->out->val_hw = insn->in->op == OP_MOVZ || insn->in->op == OP_MOVK ? safe_GETBF(insn->in->insnbits, 21, 2) << 4 : 0; 
     if (insn->out->op == OP_MOVZ)
@@ -392,7 +399,7 @@ comb_logic_t execute_instr(pipe_reg_t *const insn) {
     
     copy_m_ctl_sigs(insn);
     copy_w_ctl_sigs(insn);
-    uint64_t alu_b = insn->in->X_sigs.valb_sel ? insn->in->val_b : insn->in->val_imm;
+    uint64_t alu_b = insn->in->X_sigs.valb_sel ? insn->in->val_imm : insn->in->val_b;
     alu(insn->in->val_a, alu_b, insn->in->val_hw, insn->in->ALU_op, insn->in->X_sigs.set_CC, insn->in->cond, &insn->out->val_ex, &X_condval);
     insn->out->dst = insn->in->dst;
     insn->out->val_b = insn->in->val_b;
@@ -415,9 +422,10 @@ comb_logic_t memory_instr(pipe_reg_t *const insn) {
     bool dmem_err; // Ignored, though you will need this as a filler parameter to dmem.
     copy_m_ctl_sigs(insn);
     copy_w_ctl_sigs(insn);
+    dmem(insn->in->val_ex, insn->in->val_b, insn->in->M_sigs.dmem_read, insn->in->M_sigs.dmem_write, &insn->out->val_mem, &dmem_err);
     insn->out->dst = insn->in->dst;
     insn->out->op = insn->in->op;
-    dmem(insn->in->val_ex, insn->in->val_b, insn->in->M_sigs.dmem_read, insn->in->M_sigs.dmem_write, &insn->out->val_mem, &dmem_err);
+    
     insn->out->val_ex = insn->in->val_ex;
     return;
 }
@@ -432,8 +440,8 @@ comb_logic_t memory_instr(pipe_reg_t *const insn) {
  */
 
 comb_logic_t wback_instr(pipe_reg_t *const insn) {
-    insn->out->val_ex = insn->in->val_ex;
-    copy_w_ctl_sigs(insn);
+    
+    copy_w_ctl_sigs(insn);  
     W_wval = insn->in->W_sigs.wval_sel ? insn->in->val_mem : insn->in->val_ex;
     insn->out->op = insn->in->op;
 
