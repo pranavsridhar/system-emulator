@@ -187,7 +187,7 @@ generate_DXMW_control(opcode_t op,
 static comb_logic_t 
 extract_immval(uint32_t insnbits, int64_t *imm) {
     opcode_t op = itable[safe_GETBF(insnbits, 21, 11)];
-    if (op == OP_UBFM || op == OP_ASR || op == OP_LSR || op == OP_LSL)
+    if (op == OP_UBFM || op == OP_ASR)
     {
         *imm = safe_GETBF(insnbits, 10, 12);
     }
@@ -198,14 +198,6 @@ extract_immval(uint32_t insnbits, int64_t *imm) {
     else if (op == OP_MOVZ || op == OP_MOVK)
     {
         *imm = safe_GETBF(insnbits, 5, 16);
-    }
-    else if (op == OP_B_COND)
-    {
-        *imm = safe_GETBF(insnbits, 5, 19);
-    }
-    else if (op == OP_B || op == OP_BL)
-    {
-        *imm = safe_GETBF(insnbits, 0, 26);
     }
 
     return;
@@ -258,10 +250,6 @@ decide_alu_op(opcode_t op, alu_op_t *ALU_op) {
     {
         *ALU_op = AND_OP;
     }
-    // else if (op == OP_LSL)
-    // {
-    //     *ALU_op = LSL_OP;
-    // }
     else if (op == OP_LSR)
     {
         *ALU_op = LSR_OP;
@@ -315,8 +303,8 @@ comb_logic_t fetch_instr(pipe_reg_t *const insn) {
     select_PC(insn->in->pred_PC, guest.proc->x_insn->in->op, X_condval, guest.proc->x_insn->in->seq_succ_PC, guest.proc->d_insn->in->op, guest.proc->d_insn->out->val_a, &current_PC);
     imem(current_PC, &insn->out->insnbits, &imem_err);
     uint64_t out_op = itable[safe_GETBF(insn->out->insnbits, 21, 11)];
-    insn->out->op = out_op;
     predict_PC(current_PC, insn->out->insnbits, out_op, &pred_pc, &insn->out->seq_succ_PC);
+    insn->out->op = out_op;
     return;
 }
 
@@ -357,13 +345,13 @@ comb_logic_t decode_instr(pipe_reg_t *const insn) {
         src2 = safe_GETBF(insn->in->insnbits, 0, 5);
     }
 
-    uint8_t dst = insn->out->W_sigs.dst_sel ? 30 : guest.proc->w_insn->in->dst;
-    insn->out->dst = dst;
+    insn->out->dst = insn->out->W_sigs.dst_sel ? 30 : guest.proc->w_insn->in->dst;
 
     decide_alu_op(insn->in->op, &insn->out->ALU_op);
 
-    regfile(src1, src2, dst, W_wval, D.src1_31isSP, D.src2_31isSP, guest.proc->w_insn->in->W_sigs.dst_31isSP, guest.proc->w_insn->in->W_sigs.w_enable,
+    regfile(src1, src2, insn->out->dst, W_wval, D.src1_31isSP, D.src2_31isSP, guest.proc->w_insn->in->W_sigs.dst_31isSP, guest.proc->w_insn->in->W_sigs.w_enable,
     &insn->out->val_a, &insn->out->val_b);
+
     if (insn->in->op == OP_B_COND)
     {
         insn->out->cond = GETBF(insn->in->insnbits, 0, 4);
@@ -376,10 +364,6 @@ comb_logic_t decode_instr(pipe_reg_t *const insn) {
     
 
     insn->out->val_hw = insn->in->op == OP_MOVZ || insn->in->op == OP_MOVK ? safe_GETBF(insn->in->insnbits, 21, 2) << 4 : 0; 
-    // if (insn->out->op == OP_MOVZ)
-    // {
-    //     insn->out->op = 0;
-    // }
     insn->out->op = insn->out->op == OP_MOVZ ? 0 : insn->out->op;
 
     return;
@@ -399,7 +383,11 @@ comb_logic_t execute_instr(pipe_reg_t *const insn) {
     
     copy_m_ctl_sigs(insn);
     copy_w_ctl_sigs(insn);
-    uint64_t alu_b = insn->in->X_sigs.valb_sel ? insn->in->val_imm : insn->in->val_b;
+    uint64_t alu_b = insn->in->val_b;
+    if (insn->in->X_sigs.valb_sel)
+    {
+        alu_b = insn->in->val_imm;
+    }
     alu(insn->in->val_a, alu_b, insn->in->val_hw, insn->in->ALU_op, insn->in->X_sigs.set_CC, insn->in->cond, &insn->out->val_ex, &X_condval);
     insn->out->dst = insn->in->dst;
     insn->out->val_b = insn->in->val_b;
@@ -440,9 +428,14 @@ comb_logic_t memory_instr(pipe_reg_t *const insn) {
  */
 
 comb_logic_t wback_instr(pipe_reg_t *const insn) {
-    insn->out->val_ex = insn->in->val_ex;
+    
     copy_w_ctl_sigs(insn);  
-    W_wval = insn->in->W_sigs.wval_sel ? insn->in->val_mem : insn->in->val_ex;
+    W_wval = insn->in->val_ex;
+    if (insn->in->W_sigs.wval_sel)
+    {
+        W_wval = insn->in->val_mem;
+    }
+    insn->out->val_ex = insn->in->val_ex;
     insn->out->op = insn->in->op;
 
     return;

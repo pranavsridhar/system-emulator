@@ -1,7 +1,7 @@
 Welcome to the C S 429 Architecture Emulator
 
 Author: [1m[31mReference Implementation[0m
-Run begun at Tue Nov  8 19:45:37 2022
+Run begun at Tue Nov  8 20:12:11 2022
 
 
 
@@ -305,7 +305,7 @@ W: NOP   [dst, val_ex, val_mem] = [X0, 0x1234, 0x0]
 	 W_sigs: [dst_31isSP, dst_sel, wval_sel, w_enable] = [false, false, false, false]
 
 
-Run ended at Tue Nov  8 19:45:37 2022
+Run ended at Tue Nov  8 20:12:11 2022
 
 [1mGoodbye!
 
