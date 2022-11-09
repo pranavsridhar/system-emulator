@@ -374,10 +374,6 @@ comb_logic_t decode_instr(pipe_reg_t *const insn) {
     
     insn->out->dst = safe_GETBF(insn->in->insnbits, 0, 5);
     
-    if (insn->in->op == OP_B_COND)
-    {
-        insn->out->cond = GETBF(insn->in->insnbits, 0, 4);
-    }
 
     insn->out->val_hw = insn->in->op == OP_MOVZ || insn->in->op == OP_MOVK ? safe_GETBF(insn->in->insnbits, 21, 2) << 4 : 0; 
     // if (insn->out->op == OP_MOVZ)
