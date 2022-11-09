@@ -154,25 +154,29 @@ predict_PC(uint64_t current_PC, uint32_t insnbits, opcode_t op, uint64_t *predic
 static comb_logic_t 
 generate_DXMW_control(opcode_t op,
                       d_ctl_sigs_t *D_sigs, x_ctl_sigs_t *X_sigs, m_ctl_sigs_t *M_sigs, w_ctl_sigs_t *W_sigs) {
-    D_sigs->src1_31isSP = op == OP_STUR || op == OP_LDURB || op == OP_LDUR || op == OP_STURB;
-    D_sigs->src2_31isSP = 0;
-    D_sigs->src2_sel = op == OP_STUR || op == OP_STURB;
 
-    M_sigs->dmem_write = op == OP_STUR || op == OP_STURB;
-    M_sigs->dmem_read = op == OP_LDUR || op == OP_LDURB;
+    bool op_load = (op == OP_LDUR || op == OP_LDURB);
+    bool op_store = (op == OP_STURB || op == OP_STUR);
+    bool op_mov = (op == OP_MOVZ || op == OP_MOVK);
 
-    X_sigs->valb_sel =  op <= OP_ADD_RI || (op >= OP_LSL && op <= OP_ASR) || op == OP_MVN;
-    X_sigs->set_CC =  op == OP_ADDS_RR || op == OP_SUBS_RR || op == OP_ANDS_RR;
+    M_sigs->dmem_write = op_store;
+    M_sigs->dmem_read = op_load;
 
-    W_sigs->wval_sel = op == OP_LDUR || op == OP_LDURB;
     W_sigs->dst_31isSP = 0;
-    W_sigs->dst_sel = op == OP_BL;
-    W_sigs->w_enable = op == OP_MOVZ || op == OP_ANDS_RR || OP_LDUR || op == OP_ADD_RI || op == OP_LDURB || op == OP_ORR_RR  
-        || op == OP_EOR_RR || op == OP_MOVK || op == OP_MVN || op == OP_ASR || op == OP_UBFM || op == OP_LSL || op == OP_LSR 
-        || op == OP_ADDS_RR || op == OP_SUBS_RR; 
-        
+    W_sigs->wval_sel = op_load; 
+    W_sigs->dst_sel = (op == OP_BL);
+    W_sigs->w_enable = (op_mov || op == OP_ADD_RI || op_load || op == OP_UBFM || op == OP_ASR ||
+    op == OP_ADDS_RR|| op == OP_SUBS_RR|| op == OP_MVN|| op == OP_ORR_RR|| op == OP_EOR_RR|| op == OP_ANDS_RR);
+    
+    X_sigs->set_CC = (op == OP_ADDS_RR || op == OP_SUBS_RR || op == OP_ANDS_RR);
+    X_sigs->valb_sel = (op == OP_MVN || op <= OP_ADD_RI || (op >= OP_LSL && op <= OP_ASR));
+
+    D_sigs->src1_31isSP = (op_store|| op_load);
+    D_sigs->src2_sel = op_store;
+    D_sigs->src2_31isSP = 0; 
     return;
 }
+
 
 /*
  * Logic for extracting the immediate value for M-, I-, and RI-format instructions.
@@ -254,10 +258,10 @@ decide_alu_op(opcode_t op, alu_op_t *ALU_op) {
     {
         *ALU_op = AND_OP;
     }
-    else if (op == OP_LSL)
-    {
-        *ALU_op = LSL_OP;
-    }
+    // else if (op == OP_LSL)
+    // {
+    //     *ALU_op = LSL_OP;
+    // }
     else if (op == OP_LSR)
     {
         *ALU_op = LSR_OP;
@@ -356,13 +360,15 @@ comb_logic_t decode_instr(pipe_reg_t *const insn) {
     uint8_t dst = insn->out->W_sigs.dst_sel ? 30 : guest.proc->w_insn->in->dst;
     insn->out->dst = dst;
 
+    decide_alu_op(insn->in->op, &insn->out->ALU_op);
+
     regfile(src1, src2, dst, W_wval, D.src1_31isSP, D.src2_31isSP, guest.proc->w_insn->in->W_sigs.dst_31isSP, guest.proc->w_insn->in->W_sigs.w_enable,
     &insn->out->val_a, &insn->out->val_b);
     if (insn->in->op == OP_B_COND)
     {
         insn->out->cond = GETBF(insn->in->insnbits, 0, 4);
     }
-    decide_alu_op(insn->in->op, &insn->out->ALU_op);
+    
 
     extract_immval(insn->in->insnbits, &(insn->out->val_imm));
     
@@ -374,10 +380,11 @@ comb_logic_t decode_instr(pipe_reg_t *const insn) {
     }
 
     insn->out->val_hw = insn->in->op == OP_MOVZ || insn->in->op == OP_MOVK ? safe_GETBF(insn->in->insnbits, 21, 2) << 4 : 0; 
-    if (insn->out->op == OP_MOVZ)
-    {
-        insn->out->op = 0;
-    }
+    // if (insn->out->op == OP_MOVZ)
+    // {
+    //     insn->out->op = 0;
+    // }
+    insn->out->op = insn->out->op == OP_MOVZ ? 0 : insn->out->op;
 
     return;
 }
@@ -444,6 +451,7 @@ comb_logic_t wback_instr(pipe_reg_t *const insn) {
 
     return;
 }
+
 
 static char *opcode_names[] = {
     "ERR ", 
