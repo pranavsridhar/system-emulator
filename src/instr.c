@@ -308,25 +308,13 @@ copy_w_ctl_sigs(pipe_reg_t *const insn) {
 
 comb_logic_t fetch_instr(pipe_reg_t *const insn) {
     bool imem_err; // Ignored, though you will need this as a filler parameter to imem.
-    select_PC(pred_pc, guest.proc->x_insn->in->op, X_condval, insn->in->seq_succ_PC, guest.proc->d_insn->in->op, guest.proc->d_insn->out->val_a, &current_PC);
+    select_PC(insn->in->pred_PC, guest.proc->x_insn->in->op, X_condval, guest.proc->x_insn->in->seq_succ_PC, guest.proc->d_insn->in->op, guest.proc->d_insn->out->val_a, &current_PC);
     imem(current_PC, &insn->out->insnbits, &imem_err);
     uint64_t out_op = itable[safe_GETBF(insn->out->insnbits, 21, 11)];
     insn->out->op = out_op;
     predict_PC(current_PC, insn->out->insnbits, out_op, &pred_pc, &insn->out->seq_succ_PC);
     return;
 }
-
-
-/*
- * Decode stage logic.
- * STUDENT TO-DO:
- * Implement the decode stage.
- * 
- * You will need the global variable W_wval
- * and helper functions
- * generate_DXMW_control, regfile, extract_immval,
- * and decide_alu_op.
- */
 
 /*
  * Decode stage logic.
@@ -394,6 +382,7 @@ comb_logic_t decode_instr(pipe_reg_t *const insn) {
     return;
 }
 
+
 /*
  * Execute stage logic.
  * STUDENT TO-DO:
@@ -428,12 +417,13 @@ comb_logic_t execute_instr(pipe_reg_t *const insn) {
 
 comb_logic_t memory_instr(pipe_reg_t *const insn) {
     bool dmem_err; // Ignored, though you will need this as a filler parameter to dmem.
+    insn->out->val_ex = insn->in->val_ex;
     copy_m_ctl_sigs(insn);
     copy_w_ctl_sigs(insn);
     dmem(insn->in->val_ex, insn->in->val_b, insn->in->M_sigs.dmem_read, insn->in->M_sigs.dmem_write, &insn->out->val_mem, &dmem_err);
     insn->out->dst = insn->in->dst;
     insn->out->op = insn->in->op;
-    insn->out->val_ex = insn->in->val_ex;
+    
     return;
 }
 
@@ -447,7 +437,7 @@ comb_logic_t memory_instr(pipe_reg_t *const insn) {
  */
 
 comb_logic_t wback_instr(pipe_reg_t *const insn) {
-    
+    insn->out->val_ex = insn->in->val_ex;
     copy_w_ctl_sigs(insn);  
     W_wval = insn->in->W_sigs.wval_sel ? insn->in->val_mem : insn->in->val_ex;
     insn->out->op = insn->in->op;
