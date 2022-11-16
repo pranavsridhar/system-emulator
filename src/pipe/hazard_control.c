@@ -67,9 +67,9 @@ comb_logic_t handle_hazards(opcode_t D_opcode, uint8_t D_src1, uint8_t D_src2,
     reset();
     if (check_load_use_hazard(D_opcode, D_src1, D_src2, X_opcode, X_dst))
     {
-        guest.proc->f_insn->in->stall = 1;
-        guest.proc->d_insn->in->stall = 1;
-        guest.proc->x_insn->in->bubble = 1;
+        guest.proc->f_insn->out->stall = 1;
+        guest.proc->d_insn->out->stall = 1;
+        guest.proc->x_insn->out->bubble = 1;
     }
     // reset();
     else if (check_mispred_branch_hazard(X_opcode, X_condval))
