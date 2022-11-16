@@ -25,8 +25,9 @@ extern machine_t guest;
 // The four global variables below are signals that correspond to long wires.
 extern uint64_t pred_pc; // Defined in proc.c.
 extern uint64_t current_PC; // Defined in proc.c.
-static bool X_condval; // Generated in X. Consumed in F.
+bool X_condval; // Generated in X. Consumed in F.
 static uint64_t W_wval; // Generated in W. Consumed in D.
+extern mem_status_t dmem_status;
 
 inline unsigned safe_GETBF(int32_t src, unsigned frompos, unsigned width) {
     return ((((unsigned) src) & (((1 << width) - 1) << frompos)) >> frompos);
