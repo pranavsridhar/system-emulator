@@ -352,7 +352,7 @@ comb_logic_t decode_instr(pipe_reg_t *const insn) {
 
     regfile(src1, src2, insn->out->dst, W_wval, D.src1_31isSP, D.src2_31isSP, guest.proc->w_insn->in->W_sigs.dst_31isSP, guest.proc->w_insn->in->W_sigs.w_enable,
     &insn->out->val_a, &insn->out->val_b);
-
+    // forward_reg(src1, src2, )
     if (insn->in->op == OP_B_COND)
     {
         insn->out->cond = GETBF(insn->in->insnbits, 0, 4);

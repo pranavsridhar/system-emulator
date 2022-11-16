@@ -65,22 +65,23 @@ bool check_ret_hazard(opcode_t D_opcode) {
 comb_logic_t handle_hazards(opcode_t D_opcode, uint8_t D_src1, uint8_t D_src2, 
                             opcode_t X_opcode, uint8_t X_dst, bool X_condval) {
     reset();
-    if (check_load_use_hazard(guest.proc->d_insn->in->op, D_src1, D_src2, guest.proc->x_insn->in->op, guest.proc->x_insn->in->dst))
+    if (check_load_use_hazard(D_opcode, D_src1, D_src2, X_opcode, X_dst))
     {
-        guest.proc->f_insn->out->stall = 1;
-        guest.proc->d_insn->out->stall = 1;
-        guest.proc->x_insn->out->bubble = 1;
+        guest.proc->f_insn->in->stall = 1;
+        guest.proc->d_insn->in->stall = 1;
+        guest.proc->x_insn->in->bubble = 1;
     }
     // reset();
-    else if (check_mispred_branch_hazard(guest.proc->x_insn->in->op, X_condval))
+    else if (check_mispred_branch_hazard(X_opcode, X_condval))
     {
-        guest.proc->d_insn->out->bubble = 1;
-        guest.proc->x_insn->out->bubble = 1;
+        guest.proc->d_insn->in->bubble = 1;
+        guest.proc->x_insn->in->bubble = 1;
     }
     // reset();
-    else if (check_ret_hazard(guest.proc->d_insn->in->op))
+    // somethings probably wrong w this case
+    else if (check_ret_hazard(D_opcode))
     {
-        guest.proc->d_insn->out->bubble = 1;
+        guest.proc->d_insn->in->bubble = 1;
     }
     return;
 }
