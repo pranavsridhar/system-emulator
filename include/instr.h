@@ -218,6 +218,7 @@ typedef struct instr_impl {
     uint8_t         dst;
     // The following signals are written by the X logic to x_insn->out and can be used by the logic in M and W.
     uint64_t        val_ex;
+    bool cond_holds;
     // The following signals are written by the M logic to m_insn->out and can be used by the logic in W.
     uint64_t        val_mem;
 } instr_impl_t;

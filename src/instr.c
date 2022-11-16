@@ -300,7 +300,7 @@ copy_w_ctl_sigs(pipe_reg_t *const insn) {
 
 comb_logic_t fetch_instr(pipe_reg_t *const insn) {
     bool imem_err; // Ignored, though you will need this as a filler parameter to imem.
-    select_PC(insn->in->pred_PC, guest.proc->x_insn->in->op, X_condval, guest.proc->x_insn->in->seq_succ_PC, guest.proc->d_insn->in->op, guest.proc->d_insn->out->val_a, &current_PC);
+    select_PC(insn->in->pred_PC, guest.proc->m_insn->in->op, guest.proc->m_insn->in->cond_holds, guest.proc->m_insn->in->seq_succ_PC, guest.proc->x_insn->in->op, guest.proc->x_insn->in->val_a, &current_PC);
     imem(current_PC, &insn->out->insnbits, &imem_err);
     uint64_t out_op = itable[safe_GETBF(insn->out->insnbits, 21, 11)];
     predict_PC(current_PC, insn->out->insnbits, out_op, &pred_pc, &insn->out->seq_succ_PC);
@@ -389,6 +389,7 @@ comb_logic_t execute_instr(pipe_reg_t *const insn) {
         alu_b = insn->in->val_imm;
     }
     alu(insn->in->val_a, alu_b, insn->in->val_hw, insn->in->ALU_op, insn->in->X_sigs.set_CC, insn->in->cond, &insn->out->val_ex, &X_condval);
+    insn->out->cond_holds = X_condval;
     insn->out->dst = insn->in->dst;
     insn->out->val_b = insn->in->val_b;
     insn->out->op = insn->in->op;

@@ -21,7 +21,9 @@ start:
     eor 	x5, x5, x5
 	mvn 	x5, x5
 	stur	x4, [x5]
-
+    nop
+    nop
+    nop
 	ret
 	.size	start, .-start
 	.ident	"GCC: (Ubuntu/Linaro 7.5.0-3ubuntu1~18.04) 7.5.0"

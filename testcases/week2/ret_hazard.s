@@ -18,10 +18,13 @@ start:
     adds x0, x0, x1
 
     // Print x0
-    // correct: 85
+    // correct: 113
     eor 	x5, x5, x5
 	mvn 	x5, x5
 	stur	x0, [x5]
+    nop
+    nop
+    nop
 	ret
 	.size	start, .-start
 
@@ -29,6 +32,9 @@ helper:
     movz x0, #85
     movz x1, #28
     ret
+    nop
+    nop
+    nop
 
     .size helper, .-helper
 	.ident	"GCC: (Ubuntu/Linaro 7.5.0-3ubuntu1~18.04) 7.5.0"

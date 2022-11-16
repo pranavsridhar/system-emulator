@@ -9,11 +9,11 @@ Disassembly of section .note.gnu.build-id:
   4000ec:	00000014 	.inst	0x00000014 ; undefined
   4000f0:	00000003 	.inst	0x00000003 ; undefined
   4000f4:	00554e47 	.inst	0x00554e47 ; undefined
-  4000f8:	139ce78a 	.inst	0x139ce78a ; undefined
-  4000fc:	148cb1c9 	b	272c820 <__end__+0x231c648>
-  400100:	20893630 	.inst	0x20893630 ; undefined
-  400104:	44c53a8a 	.inst	0x44c53a8a ; undefined
-  400108:	cf4e461f 	.inst	0xcf4e461f ; undefined
+  4000f8:	fdeed274 	.inst	0xfdeed274 ; undefined
+  4000fc:	6215223f 	.inst	0x6215223f ; undefined
+  400100:	a1354daf 	.inst	0xa1354daf ; undefined
+  400104:	41726442 	.inst	0x41726442 ; undefined
+  400108:	9e0fc9fc 	.inst	0x9e0fc9fc ; undefined
 
 Disassembly of section .text:
 
@@ -49,7 +49,7 @@ Disassembly of section .text:
   40016c:	d2800207 	mov	x7, #0x10                  	// #16
   400170:	eb0700a5 	subs	x5, x5, x7
   400174:	f80000be 	stur	x30, [x5]
-  400178:	94000007 	bl	400194 <recursive>
+  400178:	9400000a 	bl	4001a0 <recursive>
   40017c:	f84000be 	ldur	x30, [x5]
   400180:	910040a5 	add	x5, x5, #0x10
 
@@ -57,27 +57,33 @@ Disassembly of section .text:
   400184:	ca0500a5 	eor	x5, x5, x5
   400188:	aa2503e5 	mvn	x5, x5
   40018c:	f80000a0 	stur	x0, [x5]
-  400190:	d65f03c0 	ret
+  400190:	d503201f 	nop
+  400194:	d503201f 	nop
+  400198:	d503201f 	nop
+  40019c:	d65f03c0 	ret
 
-0000000000400194 <recursive>:
-  400194:	d2800207 	mov	x7, #0x10                  	// #16
-  400198:	eb0700a5 	subs	x5, x5, x7
-  40019c:	f80000be 	stur	x30, [x5]
-  4001a0:	ca0700e7 	eor	x7, x7, x7
-  4001a4:	eb070064 	subs	x4, x3, x7
-  4001a8:	54000100 	b.eq	4001c8 <.BASE_CASE>  // b.none
-  4001ac:	91004021 	add	x1, x1, #0x10
-  4001b0:	f8400022 	ldur	x2, [x1]
-  4001b4:	ab020000 	adds	x0, x0, x2
-  4001b8:	ca020042 	eor	x2, x2, x2
-  4001bc:	d2800029 	mov	x9, #0x1                   	// #1
-  4001c0:	eb090063 	subs	x3, x3, x9
-  4001c4:	97fffff4 	bl	400194 <recursive>
+00000000004001a0 <recursive>:
+  4001a0:	d2800207 	mov	x7, #0x10                  	// #16
+  4001a4:	eb0700a5 	subs	x5, x5, x7
+  4001a8:	f80000be 	stur	x30, [x5]
+  4001ac:	ca0700e7 	eor	x7, x7, x7
+  4001b0:	eb070064 	subs	x4, x3, x7
+  4001b4:	54000100 	b.eq	4001d4 <.BASE_CASE>  // b.none
+  4001b8:	91004021 	add	x1, x1, #0x10
+  4001bc:	f8400022 	ldur	x2, [x1]
+  4001c0:	ab020000 	adds	x0, x0, x2
+  4001c4:	ca020042 	eor	x2, x2, x2
+  4001c8:	d2800029 	mov	x9, #0x1                   	// #1
+  4001cc:	eb090063 	subs	x3, x3, x9
+  4001d0:	97fffff4 	bl	4001a0 <recursive>
 
-00000000004001c8 <.BASE_CASE>:
-  4001c8:	f84000be 	ldur	x30, [x5]
-  4001cc:	910040a5 	add	x5, x5, #0x10
-  4001d0:	d65f03c0 	ret
+00000000004001d4 <.BASE_CASE>:
+  4001d4:	f84000be 	ldur	x30, [x5]
+  4001d8:	910040a5 	add	x5, x5, #0x10
+  4001dc:	d65f03c0 	ret
+  4001e0:	d503201f 	nop
+  4001e4:	d503201f 	nop
+  4001e8:	d503201f 	nop
 
 Disassembly of section .comment:
 

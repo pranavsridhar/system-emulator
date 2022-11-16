@@ -10,12 +10,25 @@
  **************************************************************************/ 
 
 #include "archsim.h"
+#include "hw_elts.h"
 #include "pipe/hazard_control.h"
+
+#define F_insn_in guest.proc->f_insn->in
+#define F_insn_out guest.proc->f_insn->out
+#define D_insn_in guest.proc->d_insn->in
+#define D_insn_out guest.proc->d_insn->out
+#define X_insn_in guest.proc->x_insn->in
+#define X_insn_out guest.proc->x_insn->out
+#define M_insn_in guest.proc->m_insn->in
+#define M_insn_out guest.proc->m_insn->out
+#define W_insn_in guest.proc->w_insn->in
+#define W_insn_out guest.proc->w_insn->out
 
 uint64_t pred_pc;
 uint64_t current_PC;
 
 extern machine_t guest;
+extern bool X_condval;
 
 int runElf(const uint64_t entry) {
     logging(LOG_INFO, "Running ELF executable");
@@ -49,8 +62,10 @@ int runElf(const uint64_t entry) {
 #endif
     unsigned int num_instr = 0;
     do {
-        guest.proc->f_insn->in->pred_PC = pred_pc;
-
+        if (!guest.proc->f_insn->out->stall) {
+            guest.proc->f_insn->in->pred_PC = pred_pc;
+        }
+        
         /* Run each stage */
         wback_instr(guest.proc->w_insn);
         memory_instr(guest.proc->m_insn);
@@ -59,7 +74,11 @@ int runElf(const uint64_t entry) {
         fetch_instr(guest.proc->f_insn);
 
         /* Check for hazards and appropriately stall/bubble stages */
-        handle_hazards();
+        uint8_t D_src1 = (D_insn_in->op == OP_MOVZ) ? 0x1F : GETBF(D_insn_in->insnbits, 5, 5);
+        uint8_t D_src2 = (D_insn_in->op != OP_STUR) ? GETBF(D_insn_in->insnbits, 16, 5) : GETBF(D_insn_in->insnbits, 0, 5);
+        uint8_t X_dst = X_insn_in->W_sigs.dst_sel ? 30 : X_insn_in->dst;
+    
+        handle_hazards(D_insn_out->op, D_src1, D_src2, X_insn_in->op, X_dst, X_condval);
 
         /* Print debug output */
         if(debug_level > 0)

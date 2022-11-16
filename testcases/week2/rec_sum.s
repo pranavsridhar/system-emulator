@@ -62,6 +62,9 @@ start:
     EOR 	x5, x5, x5
 	MVN 	x5, x5
 	STUR	x0, [x5]
+    NOP
+    NOP
+    NOP
 	RET
 
 	.size	start, .-start
@@ -100,6 +103,9 @@ recursive:
     LDUR x30, [x5]
     ADD x5, x5, #16
     RET
+    NOP // padding ... null pointer read issue
+    NOP
+    NOP
 
     .size recursive, .-recursive
 	.ident	"GCC: (Ubuntu/Linaro 7.5.0-3ubuntu1~18.04) 7.5.0"

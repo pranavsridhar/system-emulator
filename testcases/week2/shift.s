@@ -35,6 +35,9 @@ start:
     EOR 	x5, x5, x5
 	MVN 	x5, x5
 	STUR	x0, [x5]
+    nop
+    nop
+    nop
 	RET
 
 	.size	start, .-start

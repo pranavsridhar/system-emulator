@@ -21,6 +21,9 @@ start:
     eor 	x5, x5, x5
 	mvn 	x5, x5
 	stur	x0, [x5]
+    nop
+    nop
+    nop
 	ret
 
 .helper:

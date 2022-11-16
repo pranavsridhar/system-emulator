@@ -9,11 +9,11 @@ Disassembly of section .note.gnu.build-id:
   4000ec:	00000014 	.inst	0x00000014 ; undefined
   4000f0:	00000003 	.inst	0x00000003 ; undefined
   4000f4:	00554e47 	.inst	0x00554e47 ; undefined
-  4000f8:	528fce9c 	mov	w28, #0x7e74                	// #32372
-  4000fc:	b1a52688 	.inst	0xb1a52688 ; undefined
-  400100:	ce55494e 	sm3ss1	v14.4s, v10.4s, v21.4s, v18.4s
-  400104:	822755b6 	.inst	0x822755b6 ; undefined
-  400108:	6d73cdc3 	ldp	d3, d19, [x14, #-200]
+  4000f8:	a4f3aada 	ldnf1h	{z26.d}, p2/z, [x22, #3, mul vl]
+  4000fc:	284ca153 	ldnp	w19, w8, [x10, #100]
+  400100:	e94f790d 	.inst	0xe94f790d ; undefined
+  400104:	d9e34fc5 	.inst	0xd9e34fc5 ; undefined
+  400108:	eedcfbd2 	.inst	0xeedcfbd2 ; undefined
 
 Disassembly of section .text:
 
@@ -29,7 +29,10 @@ Disassembly of section .text:
   40012c:	ca0500a5 	eor	x5, x5, x5
   400130:	aa2503e5 	mvn	x5, x5
   400134:	f80000a4 	stur	x4, [x5]
-  400138:	d65f03c0 	ret
+  400138:	d503201f 	nop
+  40013c:	d503201f 	nop
+  400140:	d503201f 	nop
+  400144:	d65f03c0 	ret
 
 Disassembly of section .comment:
 

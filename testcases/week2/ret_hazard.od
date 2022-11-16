@@ -9,11 +9,11 @@ Disassembly of section .note.gnu.build-id:
   4000ec:	00000014 	.inst	0x00000014 ; undefined
   4000f0:	00000003 	.inst	0x00000003 ; undefined
   4000f4:	00554e47 	.inst	0x00554e47 ; undefined
-  4000f8:	14d32892 	b	38ca340 <__bss_end__+0x34ba1f8>
-  4000fc:	303865ce 	adr	x14, 470db5 <__bss_end__+0x60c6d>
-  400100:	f8c952c4 	.inst	0xf8c952c4 ; undefined
-  400104:	f21ba422 	ands	x2, x1, #0x7fe07fe07fe07fe0
-  400108:	b3677e33 	bfi	x19, x17, #25, #32
+  4000f8:	aa8be29c 	orr	x28, x20, x11, asr #56
+  4000fc:	d3018d08 	.inst	0xd3018d08 ; undefined
+  400100:	ffa9ffd6 	.inst	0xffa9ffd6 ; undefined
+  400104:	dcd0fdeb 	.inst	0xdcd0fdeb ; undefined
+  400108:	394e57bd 	ldrb	w29, [x29, #917]
 
 Disassembly of section .text:
 
@@ -22,19 +22,25 @@ Disassembly of section .text:
   400110:	d28001e1 	mov	x1, #0xf                   	// #15
   400114:	d2800002 	mov	x2, #0x0                   	// #0
   400118:	ab0203c2 	adds	x2, x30, x2
-  40011c:	94000008 	bl	40013c <helper>
+  40011c:	9400000b 	bl	400148 <helper>
   400120:	d280001e 	mov	x30, #0x0                   	// #0
   400124:	ab1e005e 	adds	x30, x2, x30
   400128:	ab010000 	adds	x0, x0, x1
   40012c:	ca0500a5 	eor	x5, x5, x5
   400130:	aa2503e5 	mvn	x5, x5
   400134:	f80000a0 	stur	x0, [x5]
-  400138:	d65f03c0 	ret
-
-000000000040013c <helper>:
-  40013c:	d2800aa0 	mov	x0, #0x55                  	// #85
-  400140:	d2800381 	mov	x1, #0x1c                  	// #28
+  400138:	d503201f 	nop
+  40013c:	d503201f 	nop
+  400140:	d503201f 	nop
   400144:	d65f03c0 	ret
+
+0000000000400148 <helper>:
+  400148:	d2800aa0 	mov	x0, #0x55                  	// #85
+  40014c:	d2800381 	mov	x1, #0x1c                  	// #28
+  400150:	d65f03c0 	ret
+  400154:	d503201f 	nop
+  400158:	d503201f 	nop
+  40015c:	d503201f 	nop
 
 Disassembly of section .comment:
 

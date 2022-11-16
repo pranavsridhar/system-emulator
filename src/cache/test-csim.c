@@ -152,7 +152,7 @@ void test_csim()
         /*printf("Testing (s,E,b)=(%d,%d,%d) on file %s\n", 
           s[i], E[i], b[i], trace[i]);*/
         trace_path[0] = 0;
-        strcpy(trace_path, "../../testcases/week2/");
+        strcpy(trace_path, "../../testcases/week3/");
         strcat(trace_path, trace[i]);
 
         status[i] = runtrace(s[i], E[i], b[i], trace_path, 
