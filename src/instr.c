@@ -189,7 +189,7 @@ generate_DXMW_control(opcode_t op,
 static comb_logic_t 
 extract_immval(uint32_t insnbits, int64_t *imm) {
     opcode_t op = itable[safe_GETBF(insnbits, 21, 11)];
-    if (op == OP_UBFM || op == OP_ASR)
+    if (op == OP_UBFM || op == OP_ASR || op == OP_ADD_RI)
     {
         *imm = safe_GETBF(insnbits, 10, 12);
     }
@@ -357,14 +357,19 @@ comb_logic_t decode_instr(pipe_reg_t *const insn) {
     forward_reg(src1, src2, guest.proc->x_insn->out->dst, guest.proc->m_insn->in->dst, guest.proc->w_insn->in->dst, guest.proc->x_insn->out->val_ex,
     guest.proc->m_insn->in->val_ex, guest.proc->m_insn->in->val_mem, guest.proc->w_insn->in->val_ex, guest.proc->w_insn->in->val_mem, 
     guest.proc->m_insn->in->W_sigs.wval_sel, guest.proc->w_insn->in->W_sigs.wval_sel, &insn->out->val_a, &insn->out->val_b);
+
+    insn->out->cond = insn->in->op == OP_B_COND ? GETBF(insn->in->insnbits, 0, 4) : insn->out->cond;
+    
+
+    extract_immval(insn->in->insnbits, &(insn->out->val_imm));
     
     insn->out->dst = safe_GETBF(insn->in->insnbits, 0, 5);
-    insn->out->cond = insn->in->op == OP_B_COND ? GETBF(insn->in->insnbits, 0, 4) : insn->out->cond;
+    
+
     insn->out->val_hw = insn->in->op == OP_MOVZ || insn->in->op == OP_MOVK ? safe_GETBF(insn->in->insnbits, 21, 2) << 4 : 0;
     insn->out->val_a = insn->in->op == OP_MOVZ ? 0 : insn->out->val_a;
     insn->out->op = insn->out->op == OP_MOVZ ? 0 : insn->out->op;
 
-    extract_immval(insn->in->insnbits, &(insn->out->val_imm));
     return;
 }
 
@@ -379,7 +384,7 @@ comb_logic_t decode_instr(pipe_reg_t *const insn) {
  */
 
 comb_logic_t execute_instr(pipe_reg_t *const insn) {
-    
+    // insn->out->seq_succ_PC = insn->in->seq_succ_PC;
     copy_m_ctl_sigs(insn);
     copy_w_ctl_sigs(insn);
     uint64_t alu_b = insn->in->val_b;
@@ -391,10 +396,7 @@ comb_logic_t execute_instr(pipe_reg_t *const insn) {
     insn->out->cond_holds = X_condval;
     insn->out->dst = insn->in->dst;
     insn->out->val_b = insn->in->val_b;
-    insn->out->op = insn->in->op;
-    insn->out->M_sigs = insn->in->M_sigs;
-    insn->out->W_sigs = insn->in->W_sigs;
-    return; 
+    return;
 }
 
 /*
@@ -414,7 +416,7 @@ comb_logic_t memory_instr(pipe_reg_t *const insn) {
     dmem(insn->in->val_ex, insn->in->val_b, insn->in->M_sigs.dmem_read, insn->in->M_sigs.dmem_write, &insn->out->val_mem, &dmem_err);
     insn->out->dst = insn->in->dst;
     insn->out->op = insn->in->op;
-    
+    insn->out->seq_succ_PC = insn->in->seq_succ_PC;
     return;
 }
 
