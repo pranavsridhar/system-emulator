@@ -19,6 +19,7 @@
 #include "instr.h"
 #include "machine.h"
 #include "hw_elts.h"
+#include "forward.h"
 
 extern machine_t guest;
 
@@ -170,7 +171,7 @@ generate_DXMW_control(opcode_t op,
     op == OP_ADDS_RR|| op == OP_SUBS_RR|| op == OP_MVN|| op == OP_ORR_RR|| op == OP_EOR_RR|| op == OP_ANDS_RR);
     
     X_sigs->set_CC = (op == OP_ADDS_RR || op == OP_SUBS_RR || op == OP_ANDS_RR);
-    X_sigs->valb_sel = (op == OP_MVN || op <= OP_ADD_RI || (op >= OP_LSL && op <= OP_ASR));
+    X_sigs->valb_sel = (op == OP_MVN || (op >= OP_LSL && op <= OP_ASR) || op <= OP_ADD_RI);
 
     D_sigs->src1_31isSP = (op_store|| op_load);
     D_sigs->src2_sel = op_store;
@@ -261,7 +262,7 @@ decide_alu_op(opcode_t op, alu_op_t *ALU_op) {
     }
     else
     {
-        *ALU_op = PASS_A_OP;
+        *ALU_op = PLUS_OP;
     }
 
     return;
@@ -352,21 +353,18 @@ comb_logic_t decode_instr(pipe_reg_t *const insn) {
 
     regfile(src1, src2, insn->out->dst, W_wval, D.src1_31isSP, D.src2_31isSP, guest.proc->w_insn->in->W_sigs.dst_31isSP, guest.proc->w_insn->in->W_sigs.w_enable,
     &insn->out->val_a, &insn->out->val_b);
-    // forward_reg(src1, src2, )
-    if (insn->in->op == OP_B_COND)
-    {
-        insn->out->cond = GETBF(insn->in->insnbits, 0, 4);
-    }
-    
 
-    extract_immval(insn->in->insnbits, &(insn->out->val_imm));
+    forward_reg(src1, src2, guest.proc->x_insn->out->dst, guest.proc->m_insn->in->dst, guest.proc->w_insn->in->dst, guest.proc->x_insn->out->val_ex,
+    guest.proc->m_insn->in->val_ex, guest.proc->m_insn->in->val_mem, guest.proc->w_insn->in->val_ex, guest.proc->w_insn->in->val_mem, 
+    guest.proc->m_insn->in->W_sigs.wval_sel, guest.proc->w_insn->in->W_sigs.wval_sel, &insn->out->val_a, &insn->out->val_b);
     
     insn->out->dst = safe_GETBF(insn->in->insnbits, 0, 5);
-    
-
-    insn->out->val_hw = insn->in->op == OP_MOVZ || insn->in->op == OP_MOVK ? safe_GETBF(insn->in->insnbits, 21, 2) << 4 : 0; 
+    insn->out->cond = insn->in->op == OP_B_COND ? GETBF(insn->in->insnbits, 0, 4) : insn->out->cond;
+    insn->out->val_hw = insn->in->op == OP_MOVZ || insn->in->op == OP_MOVK ? safe_GETBF(insn->in->insnbits, 21, 2) << 4 : 0;
+    insn->out->val_a = insn->in->op == OP_MOVZ ? 0 : insn->out->val_a;
     insn->out->op = insn->out->op == OP_MOVZ ? 0 : insn->out->op;
 
+    extract_immval(insn->in->insnbits, &(insn->out->val_imm));
     return;
 }
 

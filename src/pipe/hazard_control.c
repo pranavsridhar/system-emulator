@@ -74,14 +74,14 @@ comb_logic_t handle_hazards(opcode_t D_opcode, uint8_t D_src1, uint8_t D_src2,
     // reset();
     else if (check_mispred_branch_hazard(X_opcode, X_condval))
     {
-        guest.proc->d_insn->in->bubble = 1;
-        guest.proc->x_insn->in->bubble = 1;
+        guest.proc->d_insn->out->bubble = 1;
+        guest.proc->x_insn->out->bubble = 1;
     }
     // reset();
     // somethings probably wrong w this case
     else if (check_ret_hazard(D_opcode))
     {
-        guest.proc->d_insn->in->bubble = 1;
+        guest.proc->f_insn->out->bubble = 1;
     }
     return;
 }
