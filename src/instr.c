@@ -21,6 +21,7 @@
 #include "hw_elts.h"
 #include "forward.h"
 
+
 extern machine_t guest;
 
 // The four global variables below are signals that correspond to long wires.
@@ -171,7 +172,7 @@ generate_DXMW_control(opcode_t op,
     op == OP_ADDS_RR|| op == OP_SUBS_RR|| op == OP_MVN|| op == OP_ORR_RR|| op == OP_EOR_RR|| op == OP_ANDS_RR);
     
     X_sigs->set_CC = (op == OP_ADDS_RR || op == OP_SUBS_RR || op == OP_ANDS_RR);
-    X_sigs->valb_sel = (op == OP_MVN || (op >= OP_LSL && op <= OP_ASR) || op <= OP_ADD_RI);
+    X_sigs->valb_sel = (op <= OP_ADD_RI  || (op >= OP_LSL && op <= OP_ASR) || op == OP_MVN);
 
     D_sigs->src1_31isSP = (op_store|| op_load);
     D_sigs->src2_sel = op_store;
@@ -191,15 +192,15 @@ extract_immval(uint32_t insnbits, int64_t *imm) {
     opcode_t op = itable[safe_GETBF(insnbits, 21, 11)];
     if (op == OP_UBFM || op == OP_ASR || op == OP_ADD_RI)
     {
-        *imm = safe_GETBF(insnbits, 10, 12);
+        *imm = GETBF(insnbits, 10, 12);
     }
     else if (op == OP_STUR || op == OP_STURB || op == OP_LDURB || op == OP_LDUR)
     {
-        *imm = safe_GETBF(insnbits, 12, 9);
+        *imm = GETBF(insnbits, 12, 9);
     }
     else if (op == OP_MOVZ || op == OP_MOVK)
     {
-        *imm = safe_GETBF(insnbits, 5, 16);
+        *imm = GETBF(insnbits, 5, 16);
     }
 
     return;
@@ -214,8 +215,6 @@ extract_immval(uint32_t insnbits, int64_t *imm) {
 static comb_logic_t
 decide_alu_op(opcode_t op, alu_op_t *ALU_op) {
 
-    
-
     if (op == OP_LDURB || op == OP_LDUR)
     {
         *ALU_op = PLUS_OP;
@@ -224,11 +223,11 @@ decide_alu_op(opcode_t op, alu_op_t *ALU_op) {
     {
         *ALU_op = PLUS_OP;
     }
-    else if (op == OP_MOVK || op == OP_MOVZ )
+    else if (op == OP_MOVZ || op == OP_MOVK )
     {
         *ALU_op = MOV_OP;
     }
-    else if (op == OP_ADDS_RR || op == OP_ADD_RI)
+    else if (op == OP_ADD_RI || op == OP_ADDS_RR)
     {
         *ALU_op = PLUS_OP;
     }
@@ -240,25 +239,37 @@ decide_alu_op(opcode_t op, alu_op_t *ALU_op) {
     {
         *ALU_op = NEG_OP;
     }
-    else if (op == OP_EOR_RR)
-    {
-        *ALU_op = EOR_OP;
-    }
     else if (op == OP_ORR_RR)
     {
         *ALU_op = OR_OP;
+    }
+    else if (op == OP_EOR_RR)
+    {
+        *ALU_op = EOR_OP;
     }
     else if (op == OP_ANDS_RR )
     {
         *ALU_op = AND_OP;
     }
+    else if (op == OP_LSL)
+    {
+        *ALU_op = LSL_OP;
+    }
     else if (op == OP_LSR)
     {
         *ALU_op = LSR_OP;
     }
+    // else if (op == OP_UBFM)
+    // {
+    //     *ALU_op = UBFM_OP;
+    // }
     else if (op == OP_ASR)
     {
         *ALU_op = ASR_OP;
+    }
+    else if (op == OP_ERROR)
+    {
+        *ALU_op = -1;
     }
     else
     {
@@ -289,6 +300,23 @@ copy_w_ctl_sigs(pipe_reg_t *const insn) {
     return;
 }
 
+/* Helper method for fetch_instr.
+ * Uses template from UBFM.c to determine whether insn is LSR or LSL.
+*/
+void decode_UBFM(pipe_reg_t *const insn)
+{
+    uint8_t imms = GETBF(insn->out->insnbits, 10, 6);
+    uint8_t immr = GETBF(insn->out->insnbits, 16, 6);
+    if (0x3FU == (imms & 0x3FU))
+    {
+        insn->out->op = OP_LSR;
+    }
+    else if (imms+1 == immr)
+    {
+        insn->out->op = OP_LSL;
+    } 
+}
+
 /*
  * Fetch stage logic.
  * STUDENT TO-DO:
@@ -304,11 +332,20 @@ comb_logic_t fetch_instr(pipe_reg_t *const insn) {
     bool imem_err; // Ignored, though you will need this as a filler parameter to imem.
     select_PC(insn->in->pred_PC, guest.proc->m_insn->in->op, guest.proc->m_insn->in->cond_holds, guest.proc->m_insn->in->seq_succ_PC, guest.proc->x_insn->in->op, guest.proc->x_insn->in->val_a, &current_PC);
     imem(current_PC, &insn->out->insnbits, &imem_err);
-    uint64_t out_op = itable[safe_GETBF(insn->out->insnbits, 21, 11)];
+    opcode_t out_op = itable[safe_GETBF(insn->out->insnbits, 21, 11)];
+    // if (out_op == OP_MOVZ)
+    // {
+    //     out_op = itable[safe_GETBF(insn->out->insnbits, 23, 9)];
+    // }
+    if (out_op == OP_UBFM)
+    {
+        decode_UBFM(insn);
+    }
     predict_PC(current_PC, insn->out->insnbits, out_op, &pred_pc, &insn->out->seq_succ_PC);
     insn->out->op = out_op;
     return;
 }
+
 
 /*
  * Decode stage logic.
@@ -328,8 +365,6 @@ comb_logic_t decode_instr(pipe_reg_t *const insn) {
     uint8_t src1 = 31;
     uint8_t src2 = 0;
     d_ctl_sigs_t D;
-
-    
 
     generate_DXMW_control(insn->in->op, &D, &(insn->out->X_sigs), &(insn->out->M_sigs), &(insn->out->W_sigs));
 
@@ -360,15 +395,13 @@ comb_logic_t decode_instr(pipe_reg_t *const insn) {
 
     insn->out->cond = insn->in->op == OP_B_COND ? GETBF(insn->in->insnbits, 0, 4) : insn->out->cond;
     
-
     extract_immval(insn->in->insnbits, &(insn->out->val_imm));
     
     insn->out->dst = safe_GETBF(insn->in->insnbits, 0, 5);
     
-
     insn->out->val_hw = insn->in->op == OP_MOVZ || insn->in->op == OP_MOVK ? safe_GETBF(insn->in->insnbits, 21, 2) << 4 : 0;
     insn->out->val_a = insn->in->op == OP_MOVZ ? 0 : insn->out->val_a;
-    insn->out->op = insn->out->op == OP_MOVZ ? 0 : insn->out->op;
+    // insn->out->op = insn->out->op == OP_MOVZ ? 0 : insn->out->op;
 
     return;
 }
@@ -384,18 +417,26 @@ comb_logic_t decode_instr(pipe_reg_t *const insn) {
  */
 
 comb_logic_t execute_instr(pipe_reg_t *const insn) {
-    // insn->out->seq_succ_PC = insn->in->seq_succ_PC;
+    insn->out->seq_succ_PC = insn->in->seq_succ_PC;
+    insn->out->op = insn->in->op;
     copy_m_ctl_sigs(insn);
     copy_w_ctl_sigs(insn);
     uint64_t alu_b = insn->in->val_b;
+    // if (insn->in->op == OP_MOVZ)
+    // {
+    //     insn->in->val_imm = insn->in->val_ex;
+    // }
     if (insn->in->X_sigs.valb_sel)
     {
         alu_b = insn->in->val_imm;
     }
     alu(insn->in->val_a, alu_b, insn->in->val_hw, insn->in->ALU_op, insn->in->X_sigs.set_CC, insn->in->cond, &insn->out->val_ex, &X_condval);
+    
     insn->out->cond_holds = X_condval;
     insn->out->dst = insn->in->dst;
     insn->out->val_b = insn->in->val_b;
+    insn->out->X_sigs = insn->in->X_sigs;
+    insn->out->val_imm = insn->in->val_imm;
     return;
 }
 
@@ -411,14 +452,16 @@ comb_logic_t execute_instr(pipe_reg_t *const insn) {
 comb_logic_t memory_instr(pipe_reg_t *const insn) {
     bool dmem_err; // Ignored, though you will need this as a filler parameter to dmem.
     insn->out->val_ex = insn->in->val_ex;
+    insn->out->op = insn->in->op;
+    insn->out->seq_succ_PC = insn->in->seq_succ_PC;
     copy_m_ctl_sigs(insn);
     copy_w_ctl_sigs(insn);
     dmem(insn->in->val_ex, insn->in->val_b, insn->in->M_sigs.dmem_read, insn->in->M_sigs.dmem_write, &insn->out->val_mem, &dmem_err);
     insn->out->dst = insn->in->dst;
-    insn->out->op = insn->in->op;
-    insn->out->seq_succ_PC = insn->in->seq_succ_PC;
+    
     return;
 }
+
 
 /*
  * Write-back stage logic.

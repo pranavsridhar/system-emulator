@@ -69,15 +69,15 @@ comb_logic_t handle_hazards(opcode_t D_opcode, uint8_t D_src1, uint8_t D_src2,
     {
         reset();
         guest.proc->f_insn->out->stall = 1;
-        guest.proc->d_insn->out->stall = 1;
-        guest.proc->x_insn->out->bubble = 1;
+        guest.proc->d_insn->out->bubble = 1;
+        // guest.proc->x_insn->out->bubble = 1;
     }
     // reset();
     else if (check_mispred_branch_hazard(X_opcode, X_condval))
     {
         reset();
+        guest.proc->f_insn->out->bubble = 1;
         guest.proc->d_insn->out->bubble = 1;
-        guest.proc->x_insn->out->bubble = 1;
     }
     // reset();
     // somethings probably wrong w this case
