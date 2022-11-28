@@ -35,6 +35,7 @@ int clean_eviction_count = 0;
 
 /* TODO: add more globals, structs, macros if necessary */
 uword_t next_lru;
+// bool evicted;
 
 /*
  * Initialize the cache according to specified arguments
@@ -67,6 +68,7 @@ cache_t *create_cache(int s_in, int b_in, int E_in, int d_in) {
 
     /* TODO: add more code for initialization */
     next_lru = 0;
+    // evicted = 0;
     return cache;
 }
 
@@ -123,7 +125,20 @@ void free_cache(cache_t *cache) {
  */
 cache_line_t *get_line(cache_t *cache, uword_t addr) {
     /* your implementation */
-    return NULL;
+    // uword_t tag = addr >> (cache->b + cache->s);
+    // unsigned int set_index = 0;
+    cache_line_t *line = NULL;
+    cache_set_t set = cache->sets[(addr >> cache->b) & ((1 << cache->s) -1)];
+    // int i = 0;
+
+    for (int i = 0; i<cache->E; i++)
+    {
+        if (set.lines[i].valid && set.lines[i].tag == addr >> (cache->b + cache->s))
+        {
+            line = &(set.lines[i]);
+        }
+    }
+    return line;
 }
 
 /* TODO:
@@ -132,7 +147,48 @@ cache_line_t *get_line(cache_t *cache, uword_t addr) {
  */
 cache_line_t *select_line(cache_t *cache, uword_t addr) {
     /* your implementation */
-    return NULL;
+    // uword_t tag = addr >> (cache->b + cache->s);
+    // unsigned int set_index = 0;
+    cache_set_t set = cache->sets[(addr >> cache->b) & ((1 << cache->s) -1)];
+    cache_line_t *line = &set.lines[0];
+    uword_t lru = set.lines[0].lru;
+    bool evicted = true; //true
+    for (int i = 0; i < cache->E; i++)
+    {
+        if (!set.lines[i].valid)
+        {
+            evicted = false; //false
+            // printf("not evicted, found line\n");
+            return &set.lines[i];
+        }
+
+        else if (set.lines[i].lru < lru)
+        {
+            
+            // printf("evicted\n");
+            line = &set.lines[i];
+            lru = set.lines[i].lru;
+            // printf("(inside loop) dirty? %d\n", line->dirty);
+        }
+    }
+    
+    if (evicted)
+    {
+        // printf("(outside loop) dirty? %d\n", line->dirty);
+        // printf("(outside loop) evicted? %d\n", evicted);
+        if (!line->dirty)
+        {
+            // printf("clean\n");
+            clean_eviction_count++;
+        }
+        else
+        {
+            // printf("dirty\n");
+            dirty_eviction_count++;
+        }
+    }
+    
+    return line;
 }
 
 /*  TODO:
@@ -141,7 +197,35 @@ cache_line_t *select_line(cache_t *cache, uword_t addr) {
  */
 bool check_hit(cache_t *cache, uword_t addr, operation_t operation) {
     /* your implementation */
-    return false;
+    // uword_t tag = addr >> (cache->b + cache->s);
+    cache_line_t *line = get_line(cache, addr);
+    bool hit = false;
+    if (line != NULL)
+    {
+        hit = true;
+    }
+    // printf("hit is %d \n", hit);
+    
+    if (!hit)
+    {
+        // line->dirty = operation == WRITE;
+        // printf("miss\n");
+        miss_count++;
+    }
+    else
+    {
+        if (operation != READ)
+        {
+            line->dirty = true;
+        }
+        // line->dirty = operation == WRITE;
+        hit_count++;
+        // printf("hit\n");
+        line->lru = next_lru;
+        next_lru++;
+    }
+    
+    return hit;
 }
 
 /*  TODO:
@@ -149,7 +233,27 @@ bool check_hit(cache_t *cache, uword_t addr, operation_t operation) {
  * Fill out the evicted_line_t struct with info regarding the evicted line.
  */
 evicted_line_t *handle_miss(cache_t *cache, uword_t addr, operation_t operation, byte_t *incoming_data) {
-    return NULL;
+    evicted_line_t *evicted = malloc(sizeof(evicted_line_t));
+    cache_line_t *line = select_line(cache, addr);
+    unsigned int off = cache->s + cache->b;
+    evicted->data = malloc(sizeof(line->data));
+    memcpy(evicted->data, line->data, 8);
+    evicted->dirty = line->dirty;
+    evicted->valid = line->valid;
+    evicted->addr = line->tag << (off) | ((addr >> cache->b) & ((1 << cache->s) -1) << cache->b);
+
+    line->lru = next_lru;
+    next_lru++;
+
+    if (incoming_data != NULL)
+    {
+        memcpy(line->data, incoming_data, sizeof(8));
+    }
+    line->dirty = operation == WRITE;
+    line->tag = addr >> (off);
+    line->valid = true;
+
+    return evicted;
 }
 
 /* TODO:
