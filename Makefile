@@ -30,6 +30,9 @@ clean:
 	(cd src && make $@)
 	${RM} *.o *.so *.bak
 
+test_week_4: se test_week_4.sh
+	./test_week_4.sh
+
 tidy:
 	${RM} se
 

@@ -116,7 +116,7 @@ int runElf(const uint64_t entry) {
         /* Writeback - do we need it or is it for students? */
 
         num_instr++;
-    } while (current_PC != RET_FROM_MAIN_ADDR && num_instr < MAX_NUM_INSTR);
+    } while (!(D_insn_out->op == OP_RET && D_insn_out->val_a == RET_FROM_MAIN_ADDR) && num_instr < MAX_NUM_INSTR);
     free(bubble_insn);
     return EXIT_SUCCESS;
 }

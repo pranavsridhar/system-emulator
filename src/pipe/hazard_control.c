@@ -12,6 +12,7 @@
  */
 
 extern machine_t guest;
+extern mem_status_t dmem_status;
 
 void reset_stall()
 {
@@ -64,7 +65,7 @@ bool check_ret_hazard(opcode_t D_opcode) {
 
 comb_logic_t handle_hazards(opcode_t D_opcode, uint8_t D_src1, uint8_t D_src2, 
                             opcode_t X_opcode, uint8_t X_dst, bool X_condval) {
-    
+    reset();
     if (check_load_use_hazard(D_opcode, D_src1, D_src2, X_opcode, X_dst))
     {
         reset();
@@ -73,19 +74,26 @@ comb_logic_t handle_hazards(opcode_t D_opcode, uint8_t D_src1, uint8_t D_src2,
         // guest.proc->x_insn->out->bubble = 1;
     }
     // reset();
-    else if (check_mispred_branch_hazard(X_opcode, X_condval))
+    if (check_mispred_branch_hazard(X_opcode, X_condval))
     {
         reset();
-        guest.proc->f_insn->out->bubble = 1;
         guest.proc->d_insn->out->bubble = 1;
+        guest.proc->x_insn->out->bubble = 1;
     }
     // reset();
     // somethings probably wrong w this case
-    else if (check_ret_hazard(D_opcode))
+    if (check_ret_hazard(D_opcode))
     {
         reset();
         guest.proc->f_insn->out->bubble = 1;
     }
+
+    if (dmem_status == IN_FLIGHT) {
+        reset();
+        guest.proc->f_insn->out->stall = true;
+        guest.proc->d_insn->out->stall = true;
+        guest.proc->x_insn->out->stall = true;
+        guest.proc->m_insn->out->stall = true;
+    }
     return;
 }
-

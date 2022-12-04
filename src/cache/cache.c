@@ -261,8 +261,20 @@ evicted_line_t *handle_miss(cache_t *cache, uword_t addr, operation_t operation,
  * Preconditon: pos is contained within the cache.
  */
 void get_word_cache(cache_t *cache, uword_t addr, word_t *dest) {
-
+    cache_line_t *line;
+    word_t *data = 0;
+    int byte = 0;
+    // word_t to_shift;
+    while (byte < 8)
+    {
+        uword_t spot = addr + byte;
+        line = get_line(cache, spot);
+        int shift = 8 * byte;
+        *data |= ((line->data[spot & ((1 << cache->b) - 1)] & 0XFF) << shift);
+        byte++;
+    }
     /* your implementation */
+    dest = data;
     return;
 }
 
@@ -271,7 +283,17 @@ void get_word_cache(cache_t *cache, uword_t addr, word_t *dest) {
  * Preconditon: pos is contained within the cache.
  */
 void set_word_cache(cache_t *cache, uword_t addr, word_t val) {
-
+    cache_line_t *line;
+    int byte = 0;
+    // word_t to_shift;
+    while (byte < 8)
+    {
+        uword_t spot = addr + byte;
+        line = get_line(cache, spot);
+        line->data[spot & ((1 << cache->b) - 1)] = (byte_t) val & 0xFF;
+        val = val >> 8;
+        byte++;
+    }
     /* Your implementation */
     return;
 }

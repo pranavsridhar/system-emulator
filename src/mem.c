@@ -211,7 +211,7 @@ uint64_t _mem_read_cache(const uint64_t addr, const unsigned width) {
 
             uint8_t *block = calloc(B, 1);
             for (int j = 0; j < B; j++) {
-                block[j] = _mem_read_LE((addr+j) & ~(B-1), 1);
+                block[j] = _mem_read_LE((addr & ~(B-1))+j, 1);
             }
 
             evicted_line_t *evicted = handle_miss(guest.cache, block_address, READ, block);
@@ -219,7 +219,7 @@ uint64_t _mem_read_cache(const uint64_t addr, const unsigned width) {
 
             if (evicted->valid && evicted->dirty) {
                 for (int j = 0; j < B; j++) {
-                    _mem_write_LE((evicted->addr+j) & ~(B-1), evicted->data[j], 1);
+                    _mem_write_LE((evicted->addr & ~(B-1))+j, evicted->data[j], 1);
                 }
             }
 
@@ -229,13 +229,14 @@ uint64_t _mem_read_cache(const uint64_t addr, const unsigned width) {
         }
         current_address++;
     }
+    get_word_cache(guest.cache, addr, &data);
     dmem_status = READY;
     return data;
 }
 
 write_ret_code_t _mem_write_cache(const uint64_t addr, const uint64_t data, const unsigned width) {
     if (is_special_addr(addr))
-        return _mem_read_special(addr, width);
+        return _mem_write_special(addr, data, width);
 
     // byte_order_t b = get_byte_order(addr);
 
@@ -243,7 +244,7 @@ write_ret_code_t _mem_write_cache(const uint64_t addr, const uint64_t data, cons
 	uword_t current_address = addr; 
 
     for (size_t i = 0; i < width; i++) {
-        if (!check_hit(guest.cache, current_address, READ)) {
+        if (!check_hit(guest.cache, current_address, WRITE)) {
             uword_t block_address = current_address & ~(B-1);
             if(inflight_addr != block_address || !inflight) {
                 inflight_addr = block_address;
@@ -264,7 +265,7 @@ write_ret_code_t _mem_write_cache(const uint64_t addr, const uint64_t data, cons
                 block[j] = _mem_read_LE(addr+j, 1);
             }
 
-            evicted_line_t *evicted = handle_miss(guest.cache, block_address, READ, block);
+            evicted_line_t *evicted = handle_miss(guest.cache, block_address, WRITE, block);
 
             if (evicted->valid && evicted->dirty) {
                 for (int j = 0; j < B; j++) {
@@ -278,6 +279,7 @@ write_ret_code_t _mem_write_cache(const uint64_t addr, const uint64_t data, cons
         }
         current_address++;
     }
+    set_word_cache(guest.cache, addr, data);
     dmem_status = READY;
     return WRITE_SUCCESS;
 }

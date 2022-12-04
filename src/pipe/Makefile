@@ -11,8 +11,7 @@ LIBS = -ldl
 MD = gccmakedep
 
 SRCS := \
-forward.c \
-hazard_control.c \
+hazard_control.c
 
 # SRCS := $(HDRS:%.h=%.c)
 OBJS := $(SRCS:%.c=%.o)
@@ -32,4 +31,4 @@ depend:
 	${MD} -- ${CC_OPTIONS} ${CC_FLAGS} -- ${SRCS}
 
 clean:
-	${RM} *.o *.so *.bak
+	${RM} *.so *.bak

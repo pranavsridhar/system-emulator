@@ -62,7 +62,7 @@ uint64_t loadElf(const char *fileName) {
             for (uint64_t j = 0; j < filesz; j++) {
                 uint64_t addr = vaddr + j;
                 uint8_t byte = dataPtr[j];
-                mem_write_B(addr, byte);
+                _mem_write(addr, (uint64_t) byte, 1);
             }            
         }
         progHeader = (Elf64_Phdr *) (((uintptr_t) progHeader) + entry_size);

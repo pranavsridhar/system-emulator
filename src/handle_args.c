@@ -61,13 +61,13 @@ void handle_args(int argc, char **argv) {
                 break;
 #ifdef CACHE
             case 's':
-                s = atoi(optarg);
+                s = atoi(optarg); break;
             case 'b':
-                b = atoi(optarg);
+                b = atoi(optarg); break;
             case 'E':
-                E = atoi(optarg);
+                E = atoi(optarg); break;
             case 'd':
-                d = atoi(optarg);
+                d = atoi(optarg); break;
 #endif
             default:
                 sprintf(printbuf, "Ignoring unknown option %c", optopt);
