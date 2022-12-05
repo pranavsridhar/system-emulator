@@ -271,7 +271,7 @@ void get_word_cache(cache_t *cache, uword_t addr, word_t *dest) {
         line = get_line(cache, spot);
         int shift = 8 * byte;
         *data |= ((line->data[spot & ((1 << cache->b) - 1)] & 0XFF) << shift);
-        byte++;
+    
     }
     /* your implementation */
     dest = data;
@@ -292,7 +292,6 @@ void set_word_cache(cache_t *cache, uword_t addr, word_t val) {
         line = get_line(cache, spot);
         line->data[spot & ((1 << cache->b) - 1)] = (byte_t) val & 0xFF;
         val = val >> 8;
-        byte++;
     }
     /* Your implementation */
     return;
