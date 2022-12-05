@@ -35,7 +35,6 @@ int clean_eviction_count = 0;
 
 /* TODO: add more globals, structs, macros if necessary */
 uword_t next_lru;
-// bool evicted;
 
 /*
  * Initialize the cache according to specified arguments
@@ -67,8 +66,8 @@ cache_t *create_cache(int s_in, int b_in, int E_in, int d_in) {
     }
 
     /* TODO: add more code for initialization */
+    // only need to edit if we create more global variables
     next_lru = 0;
-    // evicted = 0;
     return cache;
 }
 
@@ -191,7 +190,7 @@ cache_line_t *select_line(cache_t *cache, uword_t addr) {
     return line;
 }
 
-/*  TODO:
+/* TODO:
  * Check if the address is hit in the cache, updating hit and miss data.
  * Return true if pos hits in the cache.
  */
@@ -232,27 +231,27 @@ bool check_hit(cache_t *cache, uword_t addr, operation_t operation) {
  * Handles Misses, evicting from the cache if necessary.
  * Fill out the evicted_line_t struct with info regarding the evicted line.
  */
-evicted_line_t *handle_miss(cache_t *cache, uword_t addr, operation_t operation, byte_t *incoming_data) {
+evicted_line_t *handle_miss(cache_t *cache, uword_t addr, operation_t operation, byte_t *incoming_data) { 
     evicted_line_t *evicted = malloc(sizeof(evicted_line_t));
-    cache_line_t *line = select_line(cache, addr);
+    cache_line_t *line = select_line(cache, addr);    
     unsigned int off = cache->s + cache->b;
-    evicted->data = malloc(sizeof(line->data));
-    memcpy(evicted->data, line->data, 8);
-    evicted->dirty = line->dirty;
-    evicted->valid = line->valid;
-    evicted->addr = line->tag << (off) | ((addr >> cache->b) & ((1 << cache->s) -1) << cache->b);
-
+    evicted->data = calloc((1 << cache->b), sizeof(8));
+    memcpy(evicted->data, line->data, (1 << cache->b));
+    evicted->dirty = line->dirty; 
+    evicted->valid = line->valid; 
+    
+    evicted->addr = (((addr >> cache->b) & ((1 << cache->s) - 1)) << cache->b) | (line->tag << off);
+    
     line->lru = next_lru;
     next_lru++;
-
-    if (incoming_data != NULL)
-    {
-        memcpy(line->data, incoming_data, sizeof(8));
+    
+    
+    if (incoming_data != NULL) {
+        memcpy(line->data, incoming_data, (1 << cache->b));
     }
+    line->tag = addr >> off;
+    line->valid = 1;
     line->dirty = operation == WRITE;
-    line->tag = addr >> (off);
-    line->valid = true;
-
     return evicted;
 }
 
@@ -262,19 +261,17 @@ evicted_line_t *handle_miss(cache_t *cache, uword_t addr, operation_t operation,
  */
 void get_word_cache(cache_t *cache, uword_t addr, word_t *dest) {
     cache_line_t *line;
-    word_t *data = 0;
+    word_t data = 0;
     int byte = 0;
-    // word_t to_shift;
-    while (byte < 8)
-    {
-        uword_t spot = addr + byte;
-        line = get_line(cache, spot);
-        int shift = 8 * byte;
-        *data |= ((line->data[spot & ((1 << cache->b) - 1)] & 0XFF) << shift);
-    
+    while (byte < 8) {
+        // int spot = addr + byte;
+        line = get_line(cache, byte + addr);
+        int shift = 8 * byte; 
+        data |= ((0xFF & line->data[((( 1 << cache->b) - 1) & (byte + addr))]) << shift);
+        byte++;
     }
+    *dest = data;
     /* your implementation */
-    dest = data;
     return;
 }
 
@@ -283,15 +280,15 @@ void get_word_cache(cache_t *cache, uword_t addr, word_t *dest) {
  * Preconditon: pos is contained within the cache.
  */
 void set_word_cache(cache_t *cache, uword_t addr, word_t val) {
+    
     cache_line_t *line;
     int byte = 0;
-    // word_t to_shift;
-    while (byte < 8)
-    {
-        uword_t spot = addr + byte;
-        line = get_line(cache, spot);
-        line->data[spot & ((1 << cache->b) - 1)] = (byte_t) val & 0xFF;
-        val = val >> 8;
+    while (byte < 8) {
+        line = get_line(cache, byte + addr);
+        byte_t mask = 0xFF & val;
+        line->data[(((1 << cache->b) - 1) & (byte + addr))] = mask;
+        val >>= 8;
+        byte++;
     }
     /* Your implementation */
     return;

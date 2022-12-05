@@ -3,7 +3,7 @@
 # Definitions
 
 CC = gcc
-CC_FLAGS = -Wall -ggdb -UDEBUG -DCACHE -I../include -I../include/pipe
+CC_FLAGS = -Wall -ggdb -UDEBUG -UCACHE -I../include -I../include/pipe
 CC_OPTIONS = -c
 CC_SO_OPTIONS = -shared -fpic
 CC_DL_OPTIONS = -rdynamic

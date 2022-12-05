@@ -60,19 +60,17 @@ bool check_mispred_branch_hazard(opcode_t X_opcode, bool X_condval) {
 }
 
 bool check_ret_hazard(opcode_t D_opcode) {
-    return (D_opcode == OP_RET) && dmem_status;
+    return D_opcode == OP_RET; // && dmem_status
 }
 
 comb_logic_t handle_hazards(opcode_t D_opcode, uint8_t D_src1, uint8_t D_src2, 
                             opcode_t X_opcode, uint8_t X_dst, bool X_condval) {
     reset();
-    bool hazard = false;
     if (check_load_use_hazard(D_opcode, D_src1, D_src2, X_opcode, X_dst))
     {
         reset();
         guest.proc->f_insn->out->stall = 1;
         guest.proc->d_insn->out->bubble = 1;
-        hazard = true;
         // guest.proc->x_insn->out->bubble = 1;
     }
     // reset();
@@ -81,7 +79,6 @@ comb_logic_t handle_hazards(opcode_t D_opcode, uint8_t D_src1, uint8_t D_src2,
         reset();
         guest.proc->d_insn->out->bubble = 1;
         guest.proc->x_insn->out->bubble = 1;
-        hazard = true;
     }
     // reset();
     // somethings probably wrong w this case
@@ -89,24 +86,14 @@ comb_logic_t handle_hazards(opcode_t D_opcode, uint8_t D_src1, uint8_t D_src2,
     {
         reset();
         guest.proc->f_insn->out->bubble = 1;
-        hazard = true;
     }
 
     if (dmem_status == IN_FLIGHT) {
         reset();
-        guest.proc->f_insn->out->stall = 1;
-        guest.proc->d_insn->out->stall = 1;
-        guest.proc->x_insn->out->stall = 1;
-        guest.proc->m_insn->out->stall = 1;
-
-        guest.proc->f_insn->out->bubble = 0;
-        guest.proc->d_insn->out->bubble = 0;
-        guest.proc->x_insn->out->bubble = 0;
-        guest.proc->m_insn->out->bubble = 0;
-    }
-    if (!hazard)
-    {
-        reset();
+        guest.proc->f_insn->out->stall = true;
+        guest.proc->d_insn->out->stall = true;
+        guest.proc->x_insn->out->stall = true;
+        guest.proc->m_insn->out->stall = true;
     }
     return;
 }
